@@ -1,0 +1,8 @@
+*.mkv
+*.mp4
+*.ttf
+*.TTF
+*/*.mkv
+*/*.mp4
+*/*.ttf
+*/*.TTF
