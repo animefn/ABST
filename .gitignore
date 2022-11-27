@@ -2,7 +2,11 @@
 *.mp4
 *.ttf
 *.TTF
+*.otf
+*.OTF
 */*.mkv
 */*.mp4
 */*.ttf
 */*.TTF
+*/*.otf
+*/*.OTF
