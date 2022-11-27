@@ -68,36 +68,12 @@ check_for_update
 
 # $input_video = "video.mkv"  #absolute path to video
 $mkve_params = "" #add -q when dev done
-$input_video ="G:\anime + fansubs\Anime[save]\[Yagame-sub] Shinsekai Yori - 13 [BD 720p Hi10].mkv"
-$base_input_video = ([io.fileinfo]$input_video).basename
-# $input_videos = @("G:\anime + fansubs\Anime[save]\[Yagame-sub] Shinsekai Yori - 13 [BD 720p Hi10].mkv")
 
-# foreach ($input_video in $input_videos){
-#     $base_input_video = ([io.fileinfo]$input_video).basename
-#     #paste rest here
-# }
+$input_videos = @("G:\anime + fansubs\Anime[save]\[Yagame-sub] Shinsekai Yori - 13 [BD 720p Hi10].mkv")
 
 
 
-#$input_video = "vid.mp4"
-#$tmp_dir = "tmp"+somerandom  hash-name to avoid collision
-# get temp dir depending on os https://github.com/PowerShell/PowerShell/issues/4216
-
-#[IO.Path]::GetTempDirectory()
-$tmp_dir = "my temp2"
-
-$avs_script_path_name = "$tmp_dir/${base_input_video}_script.txt"
-echo $avs_script_name
-
-#create temp directory
-mkdir $tmp_dir
-
-## get file info (nb of fonts/attachements)
-$info_array = & $script_path/mkvmerge.exe  --identification-format json --identify $input_video | ConvertFrom-Json         
-#$ff_info_array = & $script_path/ffprobe.exe  -v quiet  -print_format json -show_format -show_streams $input_video | ConvertFrom-Json
-$nb_fonts= $info_array.attachments.count
-echo "$base_input_video has: $nb_fonts fonts"
-
+############## functions
 
 function mkvextract_codecs_to_ext($codec_id){
     # not an exhaustive list, just the audio and sub ones we may need
@@ -135,14 +111,14 @@ function mkvextract_codecs_to_ext($codec_id){
     $assoc["S_HDMV/TEXTST"] = "textst"
     $assoc["S_TEXT/WEBVTT"] = "vtt"
     return $assoc.$codec_id
-    # return ($codec_id -eq "S_TEXT/ASS")
-
 }
-function extract_default_sub_n_audio(){
+
+
+function extract_default_sub_n_audio($file_tracksInfo, $dest){
     $internal_sub_found = $false
     $internal_audio_found = $false
     $audio_codec =""
-    foreach ($entry in $info_array.tracks){
+    foreach ($entry in $file_tracksInfo){
         echo $entry.type
         $codec_type= $entry.type
         $var1 =$entry.codec 
@@ -156,14 +132,14 @@ function extract_default_sub_n_audio(){
             $internal_audio_found = $true
             $audio_codec = $ext_from_codec
             echo "found default audio"
-            ffmpeg -i "$input_video" -map 0:"$idx" -acodec copy "$base_input_video.$ext_from_codec"
+            ffmpeg -i "$input_video" -map 0:"$idx" -acodec copy "$dest/$base_input_video.$ext_from_codec"
             # & $script_path/mkvextract.exe tracks  "$input_video"  "$idx":"$base_input_video.$audio_codec"
         }
         # if sub param is none we don't care about this
         if  (($codec_type -eq "subtitles")  -and $is_default){
             $internal_sub_found = $true
             echo "found default sub"
-            & $script_path/mkvextract.exe $mkve_params tracks  "$input_video"  "$idx"":$base_input_video.$ext_from_codec"
+            & $script_path/mkvextract.exe $mkve_params tracks  "$input_video"  "$idx"":$dest/$base_input_video.$ext_from_codec"
         }
         # then rewrite the below function
 
@@ -173,25 +149,15 @@ function extract_default_sub_n_audio(){
 
 
 
-
-$has_internalsub,$has_internalaudio, $audio_codec = extract_default_sub_n_audio 
-
-# echo $audio_codec
-# echo $has_internalaudio
-
-#Now depending on audio parameter decide what to do based on audio codec
-# Depending on sub priority what to do with has internal sub
-
-
-
-
 ## extract fonts (on windows call load after)  || move them in ~/.fonts/some_temp_folder on linux and don't call load on linux
-function extract_fonts($destination, $nb ){
+function extract_fonts($in, $destination, $nb ){
     $original_path = pwd
-    cd $tmp_dir
+    cd -LiteralPath $destination
+    
     # add   -q  to hide output later
-    & $script_path/mkvextract.exe $mkve_params attachments $input_video (1..$nb)
-    cd $original_path
+    
+    & $script_path/mkvextract.exe $mkve_params attachments $in (1..$nb)
+    cd -LiteralPath $original_path
 }
 function loadfonts_fromdir($dir){
     foreach($font in Get-ChildItem -Path $dir -Recurse -Include *.ttf, *.otf, *.TTF, *.OTF) {
@@ -208,49 +174,94 @@ function unloadfonts_fromdir($dir){
     #& $script_path/unload_fonts.exe $font.FullName
 }
 
-# extract_fonts $tmp_dir $nb_fonts
-# loadfonts_fromdir $tmp_dir
 
-#cd ..
+$tmp_location = "."
+############### Main program
+foreach ($input_video in $input_videos){
+    $base_input_video = ([io.fileinfo]$input_video).basename
+    # get temp dir depending on os https://github.com/PowerShell/PowerShell/issues/4216
+    #[IO.Path]::GetTempDirectory()
+    #$tmp_dir = "tmp"+somerandom  hash-name to avoid collision
+    $tmp_dir = "$tmp_location/$base_input_video"
+    
+    
 
-exit
-
-# dammit, can just dump attachement with 1 line, extract fonts to temp directory
-# ffmpeg -dump_attachment:t:0 $tmp_dir/* -i $input_video # actually this does not work
-
-#Check if input file has internal track
-#.\ffmpeg -i "$input_video" -c copy -map 0:s:0 -frames:s 1 -f null - -v 0 -hide_banner;  echo $?   | Tee-Object -Variable has_internalsub | Out-Null
-
-echo ($has_internalsub)
-#extract sub file some_file_name.ass hardcoded, what if file is srt/vtt? maybe we will be ok if textsub care not about .extention
-#ffmpeg -i $input_video -map 0:s:0 $base_input_video".ass"
+    $avs_script_path_name = "$tmp_dir/${base_input_video}_script.txt"
+    echo $avs_script_name
 
 
-#Check if input file does NOT have internal track, look for external
-echo "lol"
+    #create temp directory - works
+    $tp = mkdir $tmp_dir
+
+    ## get file info (nb of fonts/attachements)
+    $info_array = & $script_path/mkvmerge.exe  --identification-format json --identify $input_video | ConvertFrom-Json
+    #$ff_info_array = & $script_path/ffprobe.exe  -v quiet  -print_format json -show_format -show_streams $input_video | ConvertFrom-Json
+    $nb_fonts= $info_array.attachments.count
+    echo "$base_input_video has: $nb_fonts fonts"
+    
+    $has_internalsub,$has_internalaudio, $audio_codec = extract_default_sub_n_audio  $info_array.tracks $tmp_dir
+
+    
+
+    # echo $audio_codec
+    # echo $has_internalaudio
+
+    #Now depending on audio parameter decide what to do based on audio codec
+    # Depending on sub priority what to do with has internal sub
+    
+    
+    
+    extract_fonts $input_video $tmp_dir $nb_fonts
+    # loadfonts_fromdir $tmp_dir
+
+
+    exit
+
+
+    
+    echo ($has_internalsub)
+    #extract sub file some_file_name.ass hardcoded, what if file is srt/vtt? maybe we will be ok if textsub care not about .extention
+    
+    #ffmpeg -i $input_video -map 0:s:0 $base_input_video".ass"
+
+
+    #Check if input file does NOT have internal track, look for external
+    echo "lol"
+
+
+    #write avs script
+    Set-Content -Path "$avs_script_path_name" -Value '# autogenerated avs script by ABST tool' 
+    Add-Content -Path "$avs_script_path_name" -Value "LoadPlugin(`"ffm2`")"   #replace with ffms2 variable
+    Add-Content -Path "$avs_script_path_name" -Value "LoadPlugin(`"vsfilter`")"  #replace with vsfilter variable
+    Add-Content -Path "$avs_script_path_name" -Value "ffms2(`"$input_video`",atrack=-1, fpsnum=24000, fpsden=1001)  # convert to CFR"
+    Add-Content -Path "$avs_script_path_name" -Value "convertbit(8, dither=0)"
+    Add-Content -Path "$avs_script_path_name" -Value "#ConvertToYV12()"
+    Add-Content -Path "$avs_script_path_name" -Value "# textsub(subfile)" #replace with subtitles variable
+
+    # @todo still need to handle audio...
+
+    # Last and not least, encode the episode!!!!!! Yayyy
+    # FFMPEG encode command goes here 
+
+
+    #unload fonts and clear temp directory
+    # unload fonts
+
+    unloadfonts_fromdir $tmp_dir
+
+    cd ..  # exit temp_dir (if there) then delete it
+    #rmdir -Force -r $tmp_dir
+
+}
 
 
 
 
-#write avs script
-Set-Content -Path "$avs_script_path_name" -Value '# autogenerated avs script by ABST tool' 
-Add-Content -Path "$avs_script_path_name" -Value "LoadPlugin(`"ffm2`")"   #replace with ffms2 variable
-Add-Content -Path "$avs_script_path_name" -Value "LoadPlugin(`"vsfilter`")"  #replace with vsfilter variable
-Add-Content -Path "$avs_script_path_name" -Value "ffms2(`"$input_video`",atrack=-1, fpsnum=24000, fpsden=1001)  # convert to CFR"
-Add-Content -Path "$avs_script_path_name" -Value "convertbit(8, dither=0)"
-Add-Content -Path "$avs_script_path_name" -Value "#ConvertToYV12()"
-Add-Content -Path "$avs_script_path_name" -Value "# textsub(subfile)" #replace with subtitles variable
-
-# @todo still need to handle audio...
-
-# Last and not least, encode the episode!!!!!! Yayyy
-# FFMPEG encode command goes here 
 
 
-#unload fonts and clear temp directory
-# unload fonts
 
-unloadfonts_fromdir $tmp_dir
 
-cd ..  # exit temp_dir if there then delete it
-#rmdir -Force -r $tmp_dir
+
+
+
+

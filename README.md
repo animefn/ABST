@@ -56,6 +56,11 @@ Afn batch hardusbbeing réencoder ? not cool
 abst -> af batch sub tool
 absl-> af batch sub for linux (cuz it takes courage to ditch windows)
 
+# useful (batch) tools to use with this
+- InviskaMKVExtract
+- batch file renamer
+- crc32
+
 # mechanism
 //assume internal then external chosen
 Foreach $file:
