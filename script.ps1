@@ -67,6 +67,7 @@ check_for_update
 
 
 # $input_video = "video.mkv"  #absolute path to video
+$mkve_params = "" #add -q when dev done
 $input_video ="G:\anime + fansubs\Anime[save]\[Yagame-sub] Shinsekai Yori - 13 [BD 720p Hi10].mkv"
 $base_input_video = ([io.fileinfo]$input_video).basename
 # $input_videos = @("G:\anime + fansubs\Anime[save]\[Yagame-sub] Shinsekai Yori - 13 [BD 720p Hi10].mkv")
@@ -93,7 +94,7 @@ mkdir $tmp_dir
 
 ## get file info (nb of fonts/attachements)
 $info_array = & $script_path/mkvmerge.exe  --identification-format json --identify $input_video | ConvertFrom-Json         
-$ff_info_array = & $script_path/ffprobe.exe  -v quiet  -print_format json -show_format -show_streams $input_video | ConvertFrom-Json
+#$ff_info_array = & $script_path/ffprobe.exe  -v quiet  -print_format json -show_format -show_streams $input_video | ConvertFrom-Json
 $nb_fonts= $info_array.attachments.count
 echo "$base_input_video has: $nb_fonts fonts"
 
@@ -137,7 +138,7 @@ function mkvextract_codecs_to_ext($codec_id){
     # return ($codec_id -eq "S_TEXT/ASS")
 
 }
-function extract_default_sub_n_audio2(){
+function extract_default_sub_n_audio(){
     $internal_sub_found = $false
     $internal_audio_found = $false
     $audio_codec =""
@@ -150,77 +151,30 @@ function extract_default_sub_n_audio2(){
         $codec = $entry.properties.codec_id
         $ext_from_codec= mkvextract_codecs_to_ext  $codec
         echo "   >>   $idx $var1   def: $is_default  extension:$ext_from_codec"
+        # if audio param is copy we don't care about this
         if  (($codec_type -eq "audio")  -and $is_default){
             $internal_audio_found = $true
+            $audio_codec = $ext_from_codec
             echo "found default audio"
+            ffmpeg -i "$input_video" -map 0:"$idx" -acodec copy "$base_input_video.$ext_from_codec"
+            # & $script_path/mkvextract.exe tracks  "$input_video"  "$idx":"$base_input_video.$audio_codec"
         }
+        # if sub param is none we don't care about this
         if  (($codec_type -eq "subtitles")  -and $is_default){
             $internal_sub_found = $true
             echo "found default sub"
+            & $script_path/mkvextract.exe $mkve_params tracks  "$input_video"  "$idx"":$base_input_video.$ext_from_codec"
         }
         # then rewrite the below function
 
     }
-}
-
-
-function extract_default_sub_n_audio(){
-    #actually we can rewrite this function with info_array from mkvmerge, that way we don't need ffprobe it is too heavy
-    # $retArray = @()
-    
-    # $sub_type=""
-    $internal_sub_found = $false
-    $internal_audio_found = $false
-    $audio_codec =""
-    foreach ($entry in $ff_info_array.streams){
-            # echo $entry.codec_type
-            # default audio
-            if ($entry.codec_type -eq "audio") {
-                $audio_codec=$entry.codec_name
-                
-                if($entry.disposition.default){
-                    write-host  "found default audio"
-                    $internal_audio_found = $true
-                    $idx = $entry.index
-                    write-host $idx
-                    
-                    ffmpeg -i "$input_video" -map 0:"$idx" -acodec copy "$base_input_video.$audio_codec"
-                    # & $script_path/mkvextract.exe tracks  "$input_video"  "$idx":"$base_input_video.$audio_codec"
-                    # $retArray +=$audio_codec
-                    # write-host  $audio_codec
-
-                }
-            }
-
-            # default sub + get sub extension while we are at it
-            if ($entry.codec_type -eq "subtitle") {
-                $sub_type=$entry.codec_name
-                
-                if($entry.disposition.default){
-                    write-host  "found default sub "
-                    $internal_sub_found = $true
-                    $idx = $entry.index
-                    $concat= $idx.""
-                    & $script_path/mkvextract.exe -q tracks  "$input_video"  "$idx"":$base_input_video.$sub_type"
-                    # $retArray +=$sub_type
-                    # write-host  $sub_type
-                }
-                
-            }
-            # echo $ff_info_array.streams[4]
-            if ($internal_sub_found -and $internal_audio_found){
-                break
-            }
-        }
-    
-
-
-    # write-host "bye"
     return $internal_sub_found,$internal_audio_found, $audio_codec #,$sub_type
-
 }
 
-# $has_internalsub,$has_internalaudio, $audio_codec = extract_default_sub_n_audio 
+
+
+
+$has_internalsub,$has_internalaudio, $audio_codec = extract_default_sub_n_audio 
 
 # echo $audio_codec
 # echo $has_internalaudio
@@ -236,7 +190,7 @@ function extract_fonts($destination, $nb ){
     $original_path = pwd
     cd $tmp_dir
     # add   -q  to hide output later
-    & $script_path/mkvextract.exe  attachments $input_video (1..$nb)
+    & $script_path/mkvextract.exe $mkve_params attachments $input_video (1..$nb)
     cd $original_path
 }
 function loadfonts_fromdir($dir){

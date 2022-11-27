@@ -1,5 +1,9 @@
+# troll official motivation
+
+sometimes you might have a lot of content you extracted from BD/DVd with makemkv or some shit and just want to binge watch them on the go on every device so this tools make it easier, it is portable, and can be used even without admin priveleges.
+
 # Motivation
-We dot encourage hardsubs, may hardsubbers burn in hell, it is a crime, but that did not stop people from doing it anyway. 
+We dot not encourage hardsubs, may hardsubbers burn in hell, it is a crime, but that did not stop people from doing it anyway. 
 So at least if you are gonna do it, do it with the least harmful way.
 Lots of nobiish mistakes, people not including fonts, picking wrong profiles in handbrake, getting lost in this trash piece called
 staxrix.
@@ -75,6 +79,8 @@ P.s for temp files let us keep them in some hidden folder, c temp
 # shit we want to eradicate
 - https://www.msoms-anime.net/showthread.php?t=191297
 - https://www.msoms-anime.net/showthread.php?t=191296
+- staxrip, handbrake, writing manual scripts, usage of mpv/ffmpeg w/out the correct fonts or with libass making the subtitles appear wrongly
+
 # to do
 
 - get avs dll from https://github.com/AviSynth/AviSynthPlus/releases
