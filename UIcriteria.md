@@ -2,7 +2,7 @@
 
 ## Content
 Looking to have a simple UI with 
-- drag and drop (or browse) to add files, + few buttons to select an added file and remove it, or remove all
+- drag and drop (and browse) to add files, + few buttons to select an added file and remove it, or remove all
 - 1 int field (restricted range)
 - 4 drop down menu each having 3-4 choices
 - 1 field to fetch update from an api/a command in the script

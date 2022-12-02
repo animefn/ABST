@@ -1,14 +1,17 @@
 ﻿param (
         [Parameter(Mandatory)][ValidateRange(0,51)][Int]$crf, 
         [string]$preset='medium',
-        # [string]$tune='animation',
-        # # [string]$output_folder='',
-        # [Parameter(Mandatory)][ValidateSet("copy","all_to_aac","ac3_to_aac","non_aac_only")][string]$audio,
-        # [string]$aac_='animation',
-        # [Parameter(Mandatory)][ValidateSet("ignore","internal_first","external_first")][string]$subpriority,
+        [string]$tune='animation',
+        #profile and level?
+        [string]$output_folder='',
+        [ValidateSet("copy","all_to_aac","ac3_to_aac","non_aac_only","disable")][string]$audio="non_aac_only",
+        [string]$qaac_quality,
+        [Parameter(Mandatory)][ValidateSet("ignore","internal_first","external_first")][string]$subpriority,
         [string[]]$files
         
     )
+    
+
 
 # echo $crf
 # echo $preset 
@@ -66,10 +69,19 @@ check_for_update
 # https://powershell.org/2019/02/tips-for-writing-cross-platform-powershell-code/ 
 
 
-# $input_video = "video.mkv"  #absolute path to video
-$mkve_params = "" #add -q when dev done
 
-$input_videos = @("G:\anime + fansubs\Anime[save]\[Yagame-sub] Shinsekai Yori - 13 [BD 720p Hi10].mkv")
+############# Pre-processing on parameters if needed
+
+# $input_video = "video.mkv"  #absolute path to video
+$mkve_params = "-q" #add -q when dev done
+$ffmpeg_param = "-v" , "quiet" ,"-stats";  #add -v quiet -stats  when no longer debugging
+#$files = @("G:\anime + fansubs\Anime[save]\[Yagame-sub] Shinsekai Yori - 13 [BD 720p Hi10].mkv")
+
+
+# get temp dir depending on os https://github.com/PowerShell/PowerShell/issues/4216
+
+$tmp_location = (pwd).Path  #[io.path]::GetTempPath() 
+$OS_delim = [IO.Path]::DirectorySeparatorChar
 
 
 
@@ -114,37 +126,101 @@ function mkvextract_codecs_to_ext($codec_id){
 }
 
 
-function extract_default_sub_n_audio($file_tracksInfo, $dest){
+
+# takes full path 
+function process_ext_sub($fullpath){
+    #strip extension, replace and look for ass, srt, vtt, etc
+    $item = (get-item -LiteralPath $fullpath)
+    $s_path =  $item.DirectoryName 
+    $s_base =  $item.BaseName
+    $sub_extensions = @("ass","srt","ssa","sub","vtt","sup","usf","ogx","textst")
+    foreach ($ext in $sub_extensions){
+        $fullpath_sub= "$s_path" + "$OS_delim" + "$s_base"+".$ext"
+        #echo "I am gonna look for $fullpath_sub"
+        $exists = Test-Path -LiteralPath $fullpath_sub
+        if ($exists) {
+            return $fullpath_sub
+        }
+    }
+    
+    
+    return "NO_EXT"
+
+}
+
+function extract_default_sub_n_audio($file_tracksInfo, $dest, $input_video,$base_input_video, [ref]$full_aud_path, [ref]$full_sub_path){
     $internal_sub_found = $false
     $internal_audio_found = $false
-    $audio_codec =""
+    
+    # $full_aud_path =""
+    # $full_sub_path=$false
+    if ($subpriority -eq "external_first"){
+        $full_sub_path.value = process_ext_sub $input_video
+    }
+    #$look_for_internal_sub $ ! (-not ($subpriority -eq "ignore")) -and 
     foreach ($entry in $file_tracksInfo){
-        echo $entry.type
+        write-output $entry.type
         $codec_type= $entry.type
         $var1 =$entry.codec 
         $idx =$entry.id
         $is_default=$entry.properties.default_track  
         $codec = $entry.properties.codec_id
         $ext_from_codec= mkvextract_codecs_to_ext  $codec
-        echo "   >>   $idx $var1   def: $is_default  extension:$ext_from_codec"
+        write-output "   >>   $idx $var1   def: $is_default  extension:$ext_from_codec"
         # if audio param is copy we don't care about this
         if  (($codec_type -eq "audio")  -and $is_default){
             $internal_audio_found = $true
-            $audio_codec = $ext_from_codec
-            echo "found default audio"
-            ffmpeg -i "$input_video" -map 0:"$idx" -acodec copy "$dest/$base_input_video.$ext_from_codec"
-            # & $script_path/mkvextract.exe tracks  "$input_video"  "$idx":"$base_input_video.$audio_codec"
+            $aud_codec = $ext_from_codec
+            write-output "found default audio"
+            if (( $audio -eq "copy") -or  (($audio -eq "non_aac_only") -and ($aud_codec -eq "aac") )  ){
+                # do not extract just copy
+                $full_aud_path.value = $input_video
+            }elseif (( $audio -eq "ac3_to_aac") -and !($aud_codec -eq "ac3") ) {
+                #we are asked to encode ac3 only, audio is not ac3 so copy
+                $full_aud_path.value = $input_video
+            }else{
+                # transcode while you extract here
+                $aud_path = "$dest/$base_input_video.$ext_from_codec"
+                # WARNING: using this without checking for failure!
+                
+                & $script_path/ffmpeg.exe $ffmpeg_param -i "$input_video" -map 0:"$idx" -acodec copy $aud_path
+                # & $script_path/mkvextract.exe tracks  "$input_video"  "$idx":"$base_input_video.$aud_codec"
+                $full_aud_path.value =$aud_path
+                
+            }
+            
         }
-        # if sub param is none we don't care about this
-        if  (($codec_type -eq "subtitles")  -and $is_default){
-            $internal_sub_found = $true
-            echo "found default sub"
-            & $script_path/mkvextract.exe $mkve_params tracks  "$input_video"  "$idx"":$dest/$base_input_video.$ext_from_codec"
+        # if sub param is ignore we don't care about extracting sub
+        if  ( ($subpriority -eq "internal_first")  -or (  ($subpriority -eq "external_first") -and  ($full_sub_path.value -eq "NO_EXT"))  ) { 
+            echo "##########################################################"
+            if  (($codec_type -eq "subtitles")  -and $is_default){
+                # $full_sub_path  = ... process here and get null or a path
+                $internal_sub_found = $true
+                write-output "found default sub"
+                
+                $sub_dest = "$dest"+ $OS_delim +"$base_input_video.$ext_from_codec"
+                # WARNING not ideal because we do not check for failure on extraction and we assign directly the path...
+                
+                #extract sub file some_file_name.ass hardcoded, what if file is srt/vtt? maybe we will be ok if textsub care not about .extention
+                #ffmpeg -i $input_video -map 0:s:0 $base_input_video".ass"
+
+                & $script_path/mkvextract.exe $mkve_params tracks  "$input_video"  "$idx"":$sub_dest"
+                $full_sub_path.value = $sub_dest
+            }
         }
-        # then rewrite the below function
+       
+        
 
     }
-    return $internal_sub_found,$internal_audio_found, $audio_codec #,$sub_type
+    # here handle internal first but no internal found
+    if  ( ($subpriority -eq "internal_first") -and (-not  ($internal_sub_found)) ){
+        $full_sub_path.value = process_ext_sub $input_video
+    }
+    
+    $a= $full_sub_path.value
+    $b =$full_aud_path.value
+    write-output "I am returning ($a)  || $b"
+    #return $full_sub_path,$full_aud_path #,$sub_type
 }
 
 
@@ -175,20 +251,21 @@ function unloadfonts_fromdir($dir){
 }
 
 
-$tmp_location = "."
+
 ############### Main program
-foreach ($input_video in $input_videos){
+$count_files = 0
+foreach ($input_file in $files){
+    $input_video = Convert-Path  -LiteralPath  $input_file #get abs path of file
+    $count_files += 1
     $base_input_video = ([io.fileinfo]$input_video).basename
-    # get temp dir depending on os https://github.com/PowerShell/PowerShell/issues/4216
-    #[IO.Path]::GetTempDirectory()
-    #$tmp_dir = "tmp"+somerandom  hash-name to avoid collision
-    $tmp_dir = "$tmp_location/$base_input_video"
+    
+    #$tmp_dir = "tmp_location"+"abst"somerandom  hash-name to avoid collision
+    $tmp_dir = "$tmp_location"+ $OS_delim +"$base_input_video"
     
     
 
-    $avs_script_path_name = "$tmp_dir/${base_input_video}_script.txt"
-    echo $avs_script_name
-
+    $avs_script_path = "$tmp_dir"+$OS_delim+"${base_input_video}_script.avs"
+    
 
     #create temp directory - works
     $tp = mkdir $tmp_dir
@@ -199,62 +276,62 @@ foreach ($input_video in $input_videos){
     $nb_fonts= $info_array.attachments.count
     echo "$base_input_video has: $nb_fonts fonts"
     
-    $has_internalsub,$has_internalaudio, $audio_codec = extract_default_sub_n_audio  $info_array.tracks $tmp_dir
 
     
-
-    # echo $audio_codec
-    # echo $has_internalaudio
-
-    #Now depending on audio parameter decide what to do based on audio codec
-    # Depending on sub priority what to do with has internal sub
+    $final_subpath=$false
+    $final_audiopath = $false
+    extract_default_sub_n_audio  $info_array.tracks $tmp_dir $input_video $base_input_video ([ref]$final_audiopath) ([ref]$final_subpath)
+    write-output "done with extraction Audio and sub are:"
     
+    #write-output $final_subpath
+    write-output $final_audiopath
+    write-output $final_subpath
     
     
     extract_fonts $input_video $tmp_dir $nb_fonts
     # loadfonts_fromdir $tmp_dir
 
 
-    exit
-
-
-    
-    echo ($has_internalsub)
-    #extract sub file some_file_name.ass hardcoded, what if file is srt/vtt? maybe we will be ok if textsub care not about .extention
-    
-    #ffmpeg -i $input_video -map 0:s:0 $base_input_video".ass"
-
-
-    #Check if input file does NOT have internal track, look for external
-    echo "lol"
-
 
     #write avs script
-    Set-Content -Path "$avs_script_path_name" -Value '# autogenerated avs script by ABST tool' 
-    Add-Content -Path "$avs_script_path_name" -Value "LoadPlugin(`"ffm2`")"   #replace with ffms2 variable
-    Add-Content -Path "$avs_script_path_name" -Value "LoadPlugin(`"vsfilter`")"  #replace with vsfilter variable
-    Add-Content -Path "$avs_script_path_name" -Value "ffms2(`"$input_video`",atrack=-1, fpsnum=24000, fpsden=1001)  # convert to CFR"
-    Add-Content -Path "$avs_script_path_name" -Value "convertbit(8, dither=0)"
-    Add-Content -Path "$avs_script_path_name" -Value "#ConvertToYV12()"
-    Add-Content -Path "$avs_script_path_name" -Value "# textsub(subfile)" #replace with subtitles variable
+    # Important our ffms2 command has audio... what if... vfr and stuff like that :thinking:
+    $filters_dir = $script_path+$OS_delim
+    Set-Content -LiteralPath "$avs_script_path" -Value '# autogenerated avs script by ABST tool' 
+    Add-Content -LiteralPath "$avs_script_path" -Value "LoadPlugin(`"${filters_dir}ffms2.dll`")"   #replace with ffms2 variable
+    Add-Content -LiteralPath "$avs_script_path" -Value "LoadPlugin(`"${filters_dir}vsfilter.dll`")"  #replace with vsfilter variable
+    Add-Content -LiteralPath "$avs_script_path" -Value "ffms2(`"$input_video`",atrack=-1, fpsnum=24000, fpsden=1001)  # convert to CFR"
+    Add-Content -LiteralPath "$avs_script_path" -Value "convertbits(8, dither=0)"
+    Add-Content -LiteralPath "$avs_script_path" -Value "#ConvertToYV12()"
+    if (-not($final_subpath -eq $false)) {
+        Add-Content -LiteralPath "$avs_script_path" -Value "textsub(`"$final_subpath`" )" #replace with subtitles variable
+    }
+    # Add-Content -LiteralPath "$avs_script_path" -Value "version()"
 
-    # @todo still need to handle audio...
-
+    #exit
     # Last and not least, encode the episode!!!!!! Yayyy
-    # FFMPEG encode command goes here 
+    # FFMPEG encode command goes here $ffmpeg_param
 
-
+    # aud part either path to orignal file or to extracted&re-encoded file
+    # CREATE DESTINATION FILE name
+    if ($final_audiopath -ne $false){
+        echo "HIIIIIIIIIIIIIIIIII"
+        & $script_path/ffmpeg.exe -i "$avs_script_path" -i $final_audiopath -map 0:0  -map 1:a:0  -c:v libx264 -pix_fmt yuv420p -crf 20 -preset medium -profile:v high -level 4 -c:a copy  out.mkv
+    } 
+    ## 
+    # else if final audio path is empty
+    # do command without audio here
     #unload fonts and clear temp directory
     # unload fonts
 
-    unloadfonts_fromdir $tmp_dir
+    # unloadfonts_fromdir $tmp_dir
 
-    cd ..  # exit temp_dir (if there) then delete it
+    #cd ..  # exit temp_dir (if there) then delete it
     #rmdir -Force -r $tmp_dir
 
 }
 
-
+echo "all tasks finished"
+echo "processed $count_files tasks"
 
 
 

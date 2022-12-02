@@ -182,10 +182,11 @@ Coul be used with avs2yuv, etc, but damn...
 copy from above- for fool proofing
 
 ### plans to add features?
-depending on demands and necessary developement time, maybe yes, maybe no, no primises.
+depending on demands and necessary developement time, maybe yes, maybe no, no promises.
+Please do note that feedback is necessary, we don't add features for the sake of completeness unless there is demand. So if you need a feature don't expect to be added just like that, please do ask, so we can gather information on requested features.
 
 ### Why do I need this?
-- batch processing, faster, even for single files and correct, fonts are preserved. 
+- batch processing, faster (no time wasted on manual extraction, etc), even for single files and correct, fonts are preserved. 
 - No need to extract anything
 - Portable no need to install anything.
 - No need to write avisynth scripts
