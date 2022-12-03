@@ -1,13 +1,13 @@
 ﻿param (
         [Parameter(Mandatory)][ValidateRange(0,51)][Int]$crf, 
-        [string]$preset='medium',
+        [string]$preset='ultrafast',
         [string]$tune='animation',
         #profile and level?
-        [string]$output_folder='',
         [ValidateSet("copy","all_to_aac","ac3_to_aac","non_aac_only","disable")][string]$audio="non_aac_only",
-        [string]$qaac_quality,
+        [int]$qaac_quality,
         [Parameter(Mandatory)][ValidateSet("ignore","internal_first","external_first")][string]$subpriority,
-        [string[]]$files
+        [string]$output_destination,
+        [Parameter(Mandatory)][string[]]$files
         
     )
     
@@ -136,7 +136,7 @@ function process_ext_sub($fullpath){
     $sub_extensions = @("ass","srt","ssa","sub","vtt","sup","usf","ogx","textst")
     foreach ($ext in $sub_extensions){
         $fullpath_sub= "$s_path" + "$OS_delim" + "$s_base"+".$ext"
-        #echo "I am gonna look for $fullpath_sub"
+        
         $exists = Test-Path -LiteralPath $fullpath_sub
         if ($exists) {
             return $fullpath_sub
@@ -159,19 +159,19 @@ function extract_default_sub_n_audio($file_tracksInfo, $dest, $input_video,$base
     }
     #$look_for_internal_sub $ ! (-not ($subpriority -eq "ignore")) -and 
     foreach ($entry in $file_tracksInfo){
-        write-output $entry.type
+        #write-output $entry.type
         $codec_type= $entry.type
         $var1 =$entry.codec 
         $idx =$entry.id
         $is_default=$entry.properties.default_track  
         $codec = $entry.properties.codec_id
         $ext_from_codec= mkvextract_codecs_to_ext  $codec
-        write-output "   >>   $idx $var1   def: $is_default  extension:$ext_from_codec"
+        #write-output "   >>   $idx $var1   def: $is_default  extension:$ext_from_codec"
         # if audio param is copy we don't care about this
         if  (($codec_type -eq "audio")  -and $is_default){
             $internal_audio_found = $true
             $aud_codec = $ext_from_codec
-            write-output "found default audio"
+            # write-output "found default audio"
             if (( $audio -eq "copy") -or  (($audio -eq "non_aac_only") -and ($aud_codec -eq "aac") )  ){
                 # do not extract just copy
                 $full_aud_path.value = $input_video
@@ -180,10 +180,12 @@ function extract_default_sub_n_audio($file_tracksInfo, $dest, $input_video,$base
                 $full_aud_path.value = $input_video
             }else{
                 # transcode while you extract here
+                write-output "Encoding audio..."
                 $aud_path = "$dest/$base_input_video.$ext_from_codec"
+                $aud_path = "$dest/$base_input_video.m4a"
                 # WARNING: using this without checking for failure!
                 
-                & $script_path/ffmpeg.exe $ffmpeg_param -i "$input_video" -map 0:"$idx" -acodec copy $aud_path
+                & $script_path/ffmpeg.exe $ffmpeg_param -i "$input_video" -map 0:"$idx" -acodec libfdk_aac $aud_path
                 # & $script_path/mkvextract.exe tracks  "$input_video"  "$idx":"$base_input_video.$aud_codec"
                 $full_aud_path.value =$aud_path
                 
@@ -192,11 +194,11 @@ function extract_default_sub_n_audio($file_tracksInfo, $dest, $input_video,$base
         }
         # if sub param is ignore we don't care about extracting sub
         if  ( ($subpriority -eq "internal_first")  -or (  ($subpriority -eq "external_first") -and  ($full_sub_path.value -eq "NO_EXT"))  ) { 
-            echo "##########################################################"
+            
             if  (($codec_type -eq "subtitles")  -and $is_default){
                 # $full_sub_path  = ... process here and get null or a path
                 $internal_sub_found = $true
-                write-output "found default sub"
+                #write-output "found default sub"
                 
                 $sub_dest = "$dest"+ $OS_delim +"$base_input_video.$ext_from_codec"
                 # WARNING not ideal because we do not check for failure on extraction and we assign directly the path...
@@ -217,10 +219,8 @@ function extract_default_sub_n_audio($file_tracksInfo, $dest, $input_video,$base
         $full_sub_path.value = process_ext_sub $input_video
     }
     
-    $a= $full_sub_path.value
-    $b =$full_aud_path.value
-    write-output "I am returning ($a)  || $b"
-    #return $full_sub_path,$full_aud_path #,$sub_type
+    
+    
 }
 
 
@@ -236,18 +236,21 @@ function extract_fonts($in, $destination, $nb ){
     cd -LiteralPath $original_path
 }
 function loadfonts_fromdir($dir){
-    foreach($font in Get-ChildItem -Path $dir -Recurse -Include *.ttf, *.otf, *.TTF, *.OTF) {
+    echo "called $dir"
+    foreach($font in Get-ChildItem -LiteralPath $dir -Recurse -Include *.ttf, *.otf, *.TTF, *.OTF) {
     # [Session]::AddFontResource($font.FullName)
     # error reporting if one font fails, warn about it
-    echo ($font.FullName)
-    #& $script_path/load_fonts.exe $font.FullName
+        echo "loading" ($font.FullName)
+        & $script_path/load_fonts.exe $font.FullName
     }
 
 }
 
 function unloadfonts_fromdir($dir){
     #copy the one above without last line
-    #& $script_path/unload_fonts.exe $font.FullName
+    foreach($font in Get-ChildItem -LiteralPath $dir -Recurse -Include *.ttf, *.otf, *.TTF, *.OTF) {
+        & $script_path/unload_fonts.exe $font.FullName
+    }
 }
 
 
@@ -258,6 +261,8 @@ foreach ($input_file in $files){
     $input_video = Convert-Path  -LiteralPath  $input_file #get abs path of file
     $count_files += 1
     $base_input_video = ([io.fileinfo]$input_video).basename
+    
+    
     
     #$tmp_dir = "tmp_location"+"abst"somerandom  hash-name to avoid collision
     $tmp_dir = "$tmp_location"+ $OS_delim +"$base_input_video"
@@ -281,16 +286,17 @@ foreach ($input_file in $files){
     $final_subpath=$false
     $final_audiopath = $false
     extract_default_sub_n_audio  $info_array.tracks $tmp_dir $input_video $base_input_video ([ref]$final_audiopath) ([ref]$final_subpath)
-    write-output "done with extraction Audio and sub are:"
+    write-output "done with extraction of Audio and sub"
     
     #write-output $final_subpath
-    write-output $final_audiopath
-    write-output $final_subpath
+    #write-output $final_audiopath
+    #write-output $final_subpath
     
     
+    echo "extracting fonts..."
     extract_fonts $input_video $tmp_dir $nb_fonts
-    # loadfonts_fromdir $tmp_dir
-
+    echo "loading fonts..."
+    loadfonts_fromdir $tmp_dir
 
 
     #write avs script
@@ -307,15 +313,36 @@ foreach ($input_file in $files){
     }
     # Add-Content -LiteralPath "$avs_script_path" -Value "version()"
 
-    #exit
+    
     # Last and not least, encode the episode!!!!!! Yayyy
     # FFMPEG encode command goes here $ffmpeg_param
 
-    # aud part either path to orignal file or to extracted&re-encoded file
+    
     # CREATE DESTINATION FILE name
+    
+    # if not destination provided we use the same as input
+    if ($output_destination.length -eq 0){
+        #then make the out dest the same as source
+
+        $output_destination =(get-item -LiteralPath $input_video).DirectoryName
+        
+    }
+    # if the user provider (via CLI) a non-existing destination create it
+    if ((Test-Path -PathType Container  -LiteralPath $output_destination) -eq $false ){
+        
+        mkdir $output_destination
+    }
+
+    # [string]$preset='ultrafast',
+    #     [string]$tune='animation',
+    if ($audio -eq "disable"){ $final_audiopath = $false }
+    $outfile = $output_destination + $OS_delim + $base_input_video +"_out.mkv"
+    
     if ($final_audiopath -ne $false){
-        echo "HIIIIIIIIIIIIIIIIII"
-        & $script_path/ffmpeg.exe -i "$avs_script_path" -i $final_audiopath -map 0:0  -map 1:a:0  -c:v libx264 -pix_fmt yuv420p -crf 20 -preset medium -profile:v high -level 4 -c:a copy  out.mkv
+        #-profile:v high -level 4  removed after preset
+        & $script_path/ffmpeg.exe -i "$avs_script_path" -i $final_audiopath -map 0:0  -map 1:a:0  -c:v libx264 -pix_fmt yuv420p -crf $crf -preset $preset -c:a copy  $outfile
+    }else{
+        echo "Sorry ignoring audio not yet implemented"
     } 
     ## 
     # else if final audio path is empty
@@ -323,10 +350,10 @@ foreach ($input_file in $files){
     #unload fonts and clear temp directory
     # unload fonts
 
-    # unloadfonts_fromdir $tmp_dir
+    unloadfonts_fromdir $tmp_dir
 
     #cd ..  # exit temp_dir (if there) then delete it
-    #rmdir -Force -r $tmp_dir
+    rmdir -Force -r -LiteralPath $tmp_dir
 
 }
 
