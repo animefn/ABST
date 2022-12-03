@@ -9,7 +9,7 @@ Lots of nobiish mistakes, people not including fonts, picking wrong profiles in 
 staxrix.
 
 we do not have option to speicify fixed size,
-why because it degrades the quality a lot. USE CRF dammit. we told we are encouraging less shit.
+why because it degrades the quality a lot. USE CRF dammit. we told you we are encouraging less shit.
 <AmjadSONY> طيب على الاقل ضع خيار للتحويل
 22:03 <mohamedh> لا يا عم، اللي ينتج هاردسب احمر من كدة
 22:03 <mohamedh> مش عايزين نعطي خيارات كثير فيتوه
@@ -79,27 +79,18 @@ If (file_has_internal):
         ```
     do x264 command with picked crf, preset and .avs file 
 
-P.s for temp files let us keep them in some hidden folder, c temp 
+
 
 # shit we want to eradicate
 - https://www.msoms-anime.net/showthread.php?t=191297
 - https://www.msoms-anime.net/showthread.php?t=191296
+- https://www.youtube.com/watch?v=fS-EoGYzP6k&ab_channel=ZakAlqadi
+- https://github.com/Abu3safeer/mpv-bulk-encode-ass
+---> mpv libass + not batch and manual fonts extraction
 - staxrip, handbrake, writing manual scripts, usage of mpv/ffmpeg w/out the correct fonts or with libass making the subtitles appear wrongly
 
-# to do
-
-- get avs dll from https://github.com/AviSynth/AviSynthPlus/releases
-- get ffmpeg 
-- get xy-vs subfilter
-- extract fonts
-- make sure they're embedded correctly
----·> or does directshowsource handle it if font are embedded?
-if so maybe we mux to mkv if external, then run the usual routine
 
 
- options are: ommit subs, no subtitles
-22:44 <mohamedh> - internal, external, none
-22:44 <mohamedh> - external, internal, none
 
 # x264 use external avs
 x264 --crf 22 --synth-lib D:\AviSynth.dll --output aaa.h264 aaa.avs
@@ -110,75 +101,68 @@ https://forum.doom9.org/showthread.php?p=1937622#post1937622
 ffmpeg -i video -c copy -map 0:s:0 -frames:s 1 -f null - -v 0 -hide_banner; echo $?
 https://stackoverflow.com/questions/43005432/check-if-a-video-file-has-subtitles
 
-# AVs dependencies
-- xysub filder
-- directshow source, 
----" should be added manually to script path
 
-# see how we handle audio
+
+
 # script
 
-```
-# call vsfilter and ffms2 dll files
+    ```
+        # call vsfilter and ffms2 dll files
 
-ffms2(videfile.ext,atrack=-1, fpsnum=24000, fpsden=1001)  # convert to CFR
-convertbit(8, dither=0)
-ConvertToYV12()
-textsub(subfile)
-
-
-        
-        
-        
-        
-        
-        
-        [Parameter(Mandatory)][string[]]$files
-
-
-# resize is to be decided, in script? in ffmpeg?
-```
+        ffms2(videfile.ext,atrack=-1, fpsnum=24000, fpsden=1001)  # convert to CFR
+        convertbits(8, dither=0)
+        ConvertToYV12()
+        textsub(subfile)
+        # resize is to be decided, in script? in ffmpeg?
+    ```
 # syntax and Usage
 - Example
 `abst.exe -crf 22  -preset -subpriority`
+` .\abst.exe -crf 24 -subpriority "internal_first" -f input_video1.mkv input_video2.mkv -output_destination "out2"` will out output to out2 folder
+` .\abst.exe -crf 24 -subpriority "internal_first" -f $input_video1` each output will be in its corresponding input's directory
+full example:
+` .\abst.exe -crf 24 -preset "medium" -subpriority "internal_first" -audio "all_to_aac" -f $input_video1` each output will be in its corresponding input's directory
 - Currently no way to set profile nor level, they are left blank in encoder command.
-- crf values (official ones): .. from  0 to 51 (no default)
-- preset values (official ones): default ultrafast
-- $tune: (official x264 ones) animation by default
-- subpriority : 
-    - ignore : will completely remove subtitles, useful for people who want re-encoded raws out of MKVs at one go
-    - internal_first :(i.e prefer internal, if no internal will look for external local)
-    - external_first :(i.e prefer local external, if no external will look for internal)
-- audio:
+- `crf` values (official ones): .. from  0 to 51 (no default)
+- `preset` values (official ones): default ultrafast
+- `tune` (official x264 ones) animation by default
+- `subpriority` : 
+    - "ignore" : will completely remove subtitles, useful for people who want re-encoded raws out of MKVs at one go
+    - "internal_first" :(i.e prefer internal, if no internal will look for external local)
+    - "external_first" :(i.e prefer local external, if no external will look for internal)
+- `audio`:
     - "copy": audio will be left untouched as source
     - "all_to_aac": audio will always be transcoded 
     - "ac3_to_aac": any audio will be copied except ac3 audio will re-encoded
     - "non_aac_only": if input has non-aac audio, it will be reenocded (default )
     - "disable": output will not have any audio (for people doing FX/TS w/out a need for audio)
-- output_destination 
+- `output_destination` 
     - "" empty => default: do not provide a value, and the same folder of the input will be used
     - /path/to/folder a directory to save output
-- files
+- `files`
     - ` "path/to/file1" "path/to/file2..."` : paths to files separated with spaces, make sure to put each path between `" "` to escpae special characters
-- prefix  
-    - "string" add some prefix before name
-- suffix
-  - "string" add some suffix after name but before extension
+- `prefix`  
+    - "string" add some prefix before name filename
+- `suffix`
+  - "string" add some suffix at the end of the name but before extension
 
-- dimensions TO BE ADDED LATER
+- some dimensions parameter TO BE ADDED LATER
     - null => same i.e copy
     - width(int) height(int)
 
 
 # v1 investigate
+- P.s for temp files let us keep them in some hidden folder, c temp 
+- qaac audio
 - packaging entire program + dependendcies etc as 1single .exe
-> distro 2 files: cli_only, gui
+>>> goal: distribute 2 files only: cli_only, gui
 # v2 suggestions
 - auto-update 
-    - check API if new version of some compenents, get if from url in json response
-- adding custom commands
+    - check API if new version of some compenents, get them from url in json response
+- adding custom commands for avs or ffmpeg
 - fixed filesize
 - logo?
+- more audio options?
 - add parameter Crc32
     - true : contactenate [crc32] value at the end
     - false

@@ -328,13 +328,13 @@ foreach ($input_file in $files){
     # [string]$preset='ultrafast',
     #     [string]$tune='animation',
     if ($audio -eq "disable"){ $final_audiopath = $false }
-    $outfile = $output_destination + $OS_delim + $prefix+ $base_input_video +"_out"+ $suffix+".mkv"
+    $outfile = $output_destination + $OS_delim + $prefix+ $base_input_video +"_out_"+ $suffix+".mkv"
     
     if ($final_audiopath -ne $false){
         #-profile:v high -level 4  removed after preset
         & $tools_path/ffmpeg.exe -i "$avs_script_path" -i $final_audiopath -map 0:0  -map 1:a:0  -c:v libx264 -pix_fmt yuv420p -crf $crf -preset $preset -c:a copy  $outfile
     }else{
-        & $tools_path/ffmpeg.exe -i $avs_script_path -c:v libx264 -pix_fmt yuv420p -crf $crf -preset $preset -an $outfile
+        & $tools_path/ffmpeg.exe -i "$avs_script_path" -c:v libx264 -pix_fmt yuv420p -crf $crf -preset $preset -an $outfile
     } 
     ## 
     # else if final audio path is empty
