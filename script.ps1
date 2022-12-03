@@ -342,7 +342,7 @@ foreach ($input_file in $files){
         #-profile:v high -level 4  removed after preset
         & $script_path/ffmpeg.exe -i "$avs_script_path" -i $final_audiopath -map 0:0  -map 1:a:0  -c:v libx264 -pix_fmt yuv420p -crf $crf -preset $preset -c:a copy  $outfile
     }else{
-        echo "Sorry ignoring audio not yet implemented"
+        & $script_path/ffmpeg.exe -i $avs_script_path -c:v libx264 -pix_fmt yuv420p -crf $crf -preset $preset -an $outfile
     } 
     ## 
     # else if final audio path is empty
