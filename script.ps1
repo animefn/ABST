@@ -7,6 +7,8 @@
         [int]$qaac_quality,
         [Parameter(Mandatory)][ValidateSet("ignore","internal_first","external_first")][string]$subpriority,
         [string]$output_destination,
+        [string]$prefix="",
+        [string]$suffix="",
         [Parameter(Mandatory)][string[]]$files
         
     )
@@ -22,13 +24,23 @@
 
 
 $ErrorActionPreference = 'SilentlyContinue'
-$script_path = split-path -parent $MyInvocation.MyCommand.Definition
-Write-Output "Path of the script : $script_path"
 
-[version]$my_version_counter = "1.0"
+
+$mkve_params = "-q" #add -q when dev done
+$ffmpeg_param = "-v" , "quiet" ,"-stats";  #add -v quiet -stats  when no longer debugging
+
+
+$tmp_location = (pwd).Path  #[io.path]::GetTempPath() 
+$OS_delim = [IO.Path]::DirectorySeparatorChar
+
+
+$script_path = split-path -parent $MyInvocation.MyCommand.Definition
+$tools_path = (split-path -parent $MyInvocation.MyCommand.Definition) + $OS_delim+"tools"
+
+[version]$my_version_counter = "0.9"
 
 function check_for_update(){
-    # get json from API in variable
+    # get json from ANIMEFN in variable
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
     $animefn_json = Invoke-WebRequest 'https://animefn.com/abst.json' | ConvertFrom-Json
     [version]$latest_version = $animefn_json."latest_version" #get latest version number from some json web format
@@ -54,39 +66,20 @@ check_for_update
 #     [System.Reflection.Assembly]::LoadWithPartialName("System.windows.forms") | Out-Null
 #     $OpenFileDialog = New-Object System.Windows.Forms.OpenFileDialog
 #     $OpenFileDialog.initialDirectory = $initialDirectory
-#     $OpenFileDialog.filter = "CSV (*.csv)| *.csv"
+#     $OpenFileDialog.filter = "mkv (*.mkv)| *.mkv"
 #     $OpenFileDialog.ShowDialog() | Out-Null
 # }
 # $fileName = Get-FileName c:\csvs
-
-
-# cli parameters  https://stackoverflow.com/questions/2157554/how-to-handle-command-line-arguments-in-powershell
-# use this https://learn.microsoft.com/en-us/powershell/scripting/learn/ps101/09-functions?view=powershell-7.3
-
-# write every action as a separate function
 
 
 # https://powershell.org/2019/02/tips-for-writing-cross-platform-powershell-code/ 
 
 
 
-############# Pre-processing on parameters if needed
-
-# $input_video = "video.mkv"  #absolute path to video
-$mkve_params = "-q" #add -q when dev done
-$ffmpeg_param = "-v" , "quiet" ,"-stats";  #add -v quiet -stats  when no longer debugging
-#$files = @("G:\anime + fansubs\Anime[save]\[Yagame-sub] Shinsekai Yori - 13 [BD 720p Hi10].mkv")
-
-
-# get temp dir depending on os https://github.com/PowerShell/PowerShell/issues/4216
-
-$tmp_location = (pwd).Path  #[io.path]::GetTempPath() 
-$OS_delim = [IO.Path]::DirectorySeparatorChar
-
 
 
 ############## functions
-
+# Function to convert the codes in mkvextract json to file extension
 function mkvextract_codecs_to_ext($codec_id){
     # not an exhaustive list, just the audio and sub ones we may need
     # based on https://gist.github.com/pjobson/2603ea6c6697a761b3618f6ebcc8f063
@@ -108,7 +101,6 @@ function mkvextract_codecs_to_ext($codec_id){
     $assoc["A_TRUEHD"]  = "thd"
     $assoc["A_TTA1"]    = "tta"
     $assoc["A_WAVPACK4"]= "wv"
-    
 
     $assoc["S_TEXT/UTF8"]   = "srt"
     $assoc["S_TEXT/ASCII"]  = "srt"
@@ -127,7 +119,7 @@ function mkvextract_codecs_to_ext($codec_id){
 
 
 
-# takes full path 
+# takes full path of file and find a local subtitle next to that file in the same folder
 function process_ext_sub($fullpath){
     #strip extension, replace and look for ass, srt, vtt, etc
     $item = (get-item -LiteralPath $fullpath)
@@ -148,6 +140,7 @@ function process_ext_sub($fullpath){
 
 }
 
+# extract default audio and sub, or depending on parameters, may get external sub first  if found/needed
 function extract_default_sub_n_audio($file_tracksInfo, $dest, $input_video,$base_input_video, [ref]$full_aud_path, [ref]$full_sub_path){
     $internal_sub_found = $false
     $internal_audio_found = $false
@@ -171,7 +164,7 @@ function extract_default_sub_n_audio($file_tracksInfo, $dest, $input_video,$base
         if  (($codec_type -eq "audio")  -and $is_default){
             $internal_audio_found = $true
             $aud_codec = $ext_from_codec
-            # write-output "found default audio"
+            write-output "found default audio $idx"
             if (( $audio -eq "copy") -or  (($audio -eq "non_aac_only") -and ($aud_codec -eq "aac") )  ){
                 # do not extract just copy
                 $full_aud_path.value = $input_video
@@ -185,8 +178,8 @@ function extract_default_sub_n_audio($file_tracksInfo, $dest, $input_video,$base
                 $aud_path = "$dest/$base_input_video.m4a"
                 # WARNING: using this without checking for failure!
                 
-                & $script_path/ffmpeg.exe $ffmpeg_param -i "$input_video" -map 0:"$idx" -acodec libfdk_aac $aud_path
-                # & $script_path/mkvextract.exe tracks  "$input_video"  "$idx":"$base_input_video.$aud_codec"
+                & $tools_path/ffmpeg.exe $ffmpeg_param -i "$input_video" -map 0:"$idx" -acodec aac $aud_path
+                # & $tools_path/mkvextract.exe tracks  "$input_video"  "$idx":"$base_input_video.$aud_codec"
                 $full_aud_path.value =$aud_path
                 
             }
@@ -206,7 +199,7 @@ function extract_default_sub_n_audio($file_tracksInfo, $dest, $input_video,$base
                 #extract sub file some_file_name.ass hardcoded, what if file is srt/vtt? maybe we will be ok if textsub care not about .extention
                 #ffmpeg -i $input_video -map 0:s:0 $base_input_video".ass"
 
-                & $script_path/mkvextract.exe $mkve_params tracks  "$input_video"  "$idx"":$sub_dest"
+                & $tools_path/mkvextract.exe $mkve_params tracks  "$input_video"  "$idx"":$sub_dest"
                 $full_sub_path.value = $sub_dest
             }
         }
@@ -232,11 +225,10 @@ function extract_fonts($in, $destination, $nb ){
     
     # add   -q  to hide output later
     
-    & $script_path/mkvextract.exe $mkve_params attachments $in (1..$nb)
+    & $tools_path/mkvextract.exe $mkve_params attachments $in (1..$nb)
     cd -LiteralPath $original_path
 }
 function loadfonts_fromdir($dir){
-    echo "called $dir"
     foreach($font in Get-ChildItem -LiteralPath $dir -Recurse -Include *.ttf, *.otf, *.TTF, *.OTF) {
     # [Session]::AddFontResource($font.FullName)
     # error reporting if one font fails, warn about it
@@ -276,8 +268,8 @@ foreach ($input_file in $files){
     $tp = mkdir $tmp_dir
 
     ## get file info (nb of fonts/attachements)
-    $info_array = & $script_path/mkvmerge.exe  --identification-format json --identify $input_video | ConvertFrom-Json
-    #$ff_info_array = & $script_path/ffprobe.exe  -v quiet  -print_format json -show_format -show_streams $input_video | ConvertFrom-Json
+    $info_array = & $tools_path/mkvmerge.exe  --identification-format json --identify $input_video | ConvertFrom-Json
+    #$ff_info_array = & $tools_path/ffprobe.exe  -v quiet  -print_format json -show_format -show_streams $input_video | ConvertFrom-Json
     $nb_fonts= $info_array.attachments.count
     echo "$base_input_video has: $nb_fonts fonts"
     
@@ -336,20 +328,20 @@ foreach ($input_file in $files){
     # [string]$preset='ultrafast',
     #     [string]$tune='animation',
     if ($audio -eq "disable"){ $final_audiopath = $false }
-    $outfile = $output_destination + $OS_delim + $base_input_video +"_out.mkv"
+    $outfile = $output_destination + $OS_delim + $prefix+ $base_input_video +"_out"+ $suffix+".mkv"
     
     if ($final_audiopath -ne $false){
         #-profile:v high -level 4  removed after preset
-        & $script_path/ffmpeg.exe -i "$avs_script_path" -i $final_audiopath -map 0:0  -map 1:a:0  -c:v libx264 -pix_fmt yuv420p -crf $crf -preset $preset -c:a copy  $outfile
+        & $tools_path/ffmpeg.exe -i "$avs_script_path" -i $final_audiopath -map 0:0  -map 1:a:0  -c:v libx264 -pix_fmt yuv420p -crf $crf -preset $preset -c:a copy  $outfile
     }else{
-        & $script_path/ffmpeg.exe -i $avs_script_path -c:v libx264 -pix_fmt yuv420p -crf $crf -preset $preset -an $outfile
+        & $tools_path/ffmpeg.exe -i $avs_script_path -c:v libx264 -pix_fmt yuv420p -crf $crf -preset $preset -an $outfile
     } 
     ## 
     # else if final audio path is empty
     # do command without audio here
     #unload fonts and clear temp directory
     # unload fonts
-
+    echo "removing fonts"
     unloadfonts_fromdir $tmp_dir
 
     #cd ..  # exit temp_dir (if there) then delete it

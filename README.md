@@ -126,34 +126,49 @@ convertbit(8, dither=0)
 ConvertToYV12()
 textsub(subfile)
 
+
+        
+        
+        
+        
+        
+        
+        [Parameter(Mandatory)][string[]]$files
+
+
 # resize is to be decided, in script? in ffmpeg?
 ```
 # syntax and Usage
 - Example
 `abst.exe -crf 22  -preset -subpriority`
-
-- crf values (official ones): .. from  0 to 51
-- preset values (official ones): ..
+- Currently no way to set profile nor level, they are left blank in encoder command.
+- crf values (official ones): .. from  0 to 51 (no default)
+- preset values (official ones): default ultrafast
+- $tune: (official x264 ones) animation by default
 - subpriority : 
-    - none 
-    - internal (then external, then none)
-    - external (then internal, then none)
-- output 
-    - "" empty => same as source
+    - ignore : will completely remove subtitles, useful for people who want re-encoded raws out of MKVs at one go
+    - internal_first :(i.e prefer internal, if no internal will look for external local)
+    - external_first :(i.e prefer local external, if no external will look for internal)
+- audio:
+    - "copy": audio will be left untouched as source
+    - "all_to_aac": audio will always be transcoded 
+    - "ac3_to_aac": any audio will be copied except ac3 audio will re-encoded
+    - "non_aac_only": if input has non-aac audio, it will be reenocded (default )
+    - "disable": output will not have any audio (for people doing FX/TS w/out a need for audio)
+- output_destination 
+    - "" empty => default: do not provide a value, and the same folder of the input will be used
     - /path/to/folder a directory to save output
-- prefix 
+- files
+    - ` "path/to/file1" "path/to/file2..."` : paths to files separated with spaces, make sure to put each path between `" "` to escpae special characters
+- prefix  
     - "string" add some prefix before name
 - suffix
   - "string" add some suffix after name but before extension
 
-- audio:
-    - copy
-    - all_to_aac
-    - ac3_only
-- dimensions
+- dimensions TO BE ADDED LATER
     - null => same i.e copy
     - width(int) height(int)
-- list of filesnames:file name
+
 
 # v1 investigate
 - packaging entire program + dependendcies etc as 1single .exe
