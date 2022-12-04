@@ -152,6 +152,7 @@ full example:
 
 
 # v1 investigate
+- fix LS in load fonts, it tries to load .ass and audio too!
 - P.s for temp files let us keep them in some hidden folder, c temp 
 - qaac audio
 - packaging entire program + dependendcies etc as 1single .exe

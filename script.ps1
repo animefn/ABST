@@ -15,27 +15,20 @@
     
 
 
-# echo $crf
-# echo $preset 
-# foreach ($input_video in $files){
-#     echo "$input_video .dd"
-#     }
-
-
-
 $ErrorActionPreference = 'SilentlyContinue'
 
-
 $mkve_params = "-q" #add -q when dev done
-$ffmpeg_param = "-v" , "quiet" ,"-stats";  #add -v quiet -stats  when no longer debugging
+$ffmpeg_param = "-v" , "quiet" ,"-stats", "-y","-nostdin";  #add -v quiet -stats  when no longer debugging
 
 
 $tmp_location = (pwd).Path  #[io.path]::GetTempPath() 
 $OS_delim = [IO.Path]::DirectorySeparatorChar
 
 
-$script_path = split-path -parent $MyInvocation.MyCommand.Definition
-$tools_path = (split-path -parent $MyInvocation.MyCommand.Definition) + $OS_delim+"tools"
+$script_path = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -LiteralPath ([Environment]::GetCommandLineArgs()[0]) }
+$tools_path = $script_path + $OS_delim+"tools"
+write-output "running from $tools_path"
+
 
 [version]$my_version_counter = "0.9"
 
@@ -178,7 +171,7 @@ function extract_default_sub_n_audio($file_tracksInfo, $dest, $input_video,$base
                 $aud_path = "$dest/$base_input_video.m4a"
                 # WARNING: using this without checking for failure!
                 
-                & $tools_path/ffmpeg.exe $ffmpeg_param -i "$input_video" -map 0:"$idx" -acodec aac $aud_path
+                & $tools_path/ffmpeg.exe $ffmpeg_param -i "$input_video" -map 0:"$idx" -acodec aac $aud_path 
                 # & $tools_path/mkvextract.exe tracks  "$input_video"  "$idx":"$base_input_video.$aud_codec"
                 $full_aud_path.value =$aud_path
                 
@@ -229,10 +222,12 @@ function extract_fonts($in, $destination, $nb ){
     cd -LiteralPath $original_path
 }
 function loadfonts_fromdir($dir){
-    foreach($font in Get-ChildItem -LiteralPath $dir -Recurse -Include *.ttf, *.otf, *.TTF, *.OTF) {
+    #foreach($font in Get-ChildItem -LiteralPath $dir -Recurse -Include *.ttf, *.otf, *.TTF, *.OTF) {
+    foreach($font in  (Get-ChildItem -LiteralPath $dir -Recurse  | Where-Object {$_.extension -in ".ttf", ".otf"}) ) {    
     # [Session]::AddFontResource($font.FullName)
     # error reporting if one font fails, warn about it
-        echo "loading" ($font.FullName)
+        $ffn= $font.FullName
+        echo "loading($ffn)" 
         & $script_path/load_fonts.exe $font.FullName
     }
 
@@ -240,7 +235,7 @@ function loadfonts_fromdir($dir){
 
 function unloadfonts_fromdir($dir){
     #copy the one above without last line
-    foreach($font in Get-ChildItem -LiteralPath $dir -Recurse -Include *.ttf, *.otf, *.TTF, *.OTF) {
+    foreach($font in  (Get-ChildItem -LiteralPath $dir -Recurse  | Where-Object {$_.extension -in ".ttf", ".otf"}) ) {
         & $script_path/unload_fonts.exe $font.FullName
     }
 }
@@ -250,6 +245,7 @@ function unloadfonts_fromdir($dir){
 ############### Main program
 $count_files = 0
 foreach ($input_file in $files){
+    #check if input file exists, if not continue
     $input_video = Convert-Path  -LiteralPath  $input_file #get abs path of file
     $count_files += 1
     $base_input_video = ([io.fileinfo]$input_video).basename
@@ -330,18 +326,19 @@ foreach ($input_file in $files){
     if ($audio -eq "disable"){ $final_audiopath = $false }
     $outfile = $output_destination + $OS_delim + $prefix+ $base_input_video +"_out_"+ $suffix+".mkv"
     
+    echo "encoding final output for $base_input_video..."
     if ($final_audiopath -ne $false){
         #-profile:v high -level 4  removed after preset
-        & $tools_path/ffmpeg.exe -i "$avs_script_path" -i $final_audiopath -map 0:0  -map 1:a:0  -c:v libx264 -pix_fmt yuv420p -crf $crf -preset $preset -c:a copy  $outfile
+        & $tools_path/ffmpeg.exe $ffmpeg_param -progress pipe:1 -i "$avs_script_path" -i $final_audiopath -map 0:0  -map 1:a:0  -c:v libx264 -pix_fmt yuv420p -crf $crf -preset $preset -c:a copy  $outfile
     }else{
-        & $tools_path/ffmpeg.exe -i "$avs_script_path" -c:v libx264 -pix_fmt yuv420p -crf $crf -preset $preset -an $outfile
+        & $tools_path/ffmpeg.exe $ffmpeg_param -progress pipe:1 -i "$avs_script_path" -c:v libx264 -pix_fmt yuv420p -crf $crf -preset $preset -an $outfile
     } 
     ## 
     # else if final audio path is empty
     # do command without audio here
     #unload fonts and clear temp directory
     # unload fonts
-    echo "removing fonts"
+    echo "removing fonts..."
     unloadfonts_fromdir $tmp_dir
 
     #cd ..  # exit temp_dir (if there) then delete it
