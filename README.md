@@ -61,6 +61,12 @@ absl-> af batch sub for linux (cuz it takes courage to ditch windows)
 - batch file renamer
 - crc32
 
+ffmpeg version we are using
+https://github.com/sudo-nautilus/FFmpeg-Builds-Win32/releases
+guide to comppile ffmpeg  
+http://web.archive.org/web/20221204185439/https://pcloadletter.co.uk/2011/05/07/compiling-64bit-ffmpeg-for-windows-with-libfaac/
+or via https://github.com/m-ab-s/media-autobuild_suite
+
 # mechanism
 //assume internal then external chosen
 Foreach $file:
@@ -151,28 +157,48 @@ full example:
     - width(int) height(int)
 
 
-# v1 investigate
-- fix LS in load fonts, it tries to load .ass and audio too!
-- P.s for temp files let us keep them in some hidden folder, c temp 
+
+# Roadmap for dev and next version
+## v1 investigate
+-   `if  (($codec_type -eq "audio")  -and $is_default){` problem here if input is mp4 it may have 1 audio and 
+- same with subs, solution: if (is default or unique audio)  [same with sub]
+
+- P.s for temp files let us keep them in some hidden folder, c temp, or OS default temp folder 
 - qaac audio
-- packaging entire program + dependendcies etc as 1single .exe
+- test single files with sub in same folder, and files without subtitles
+- the UI iteself
+- video resize!
+- packaging entire program + dependendcies etc as 1single .exe?(with ui)
 >>> goal: distribute 2 files only: cli_only, gui
+## V1.X 
+- logo?
+- fixed filesize
+- more audio options?
+- support an entire folder as parameter (CLI)
+
 # v2 suggestions
 - auto-update 
-    - check API if new version of some compenents, get them from url in json response
-- adding custom commands for avs or ffmpeg
-- fixed filesize
-- logo?
-- more audio options?
-- add parameter Crc32
-    - true : contactenate [crc32] value at the end
-    - false
+    - check API if new version of some compenents, get them from url in json response from our server
+- adding custom commands for avs or ffmpeg (via UI)
+    - naturally, users can download the ps1 script and modify it
+
+- add parameter(switch) -crc32  (probably HS users don't care about CRC32 and it can be done en masse with many existing tools anyway)
+    - if present : contactenate [crc32] value at the end
+    - false: default
 
 ## Faq
 
 
 ### What happens if multiple audio or multiple subs?
-Default one is picked. (first one is picked). you are going to have re-arrange your mkv attachements.
+Default one is picked. (first one is picked). you are going to have re-arrange your mkv tracks.
+
+if no defaults are set and 1 audio, it will be picked
+if multiple audios, none of them is default, gfy
+if "internal first", 1 single sub internal but not default,  it will be picked
+if "internal first", multiple attached but non of them is default default,  none of them will be picked gfy (MPC does the same)
+
+in short, "no need" for default if 1 single track/sub. otherwise gfy
+
 
 ### Any plans to support other OS? Linux?
 Maybe, UI is compatible, and so it avisynth, but the main problem is vsfilter. 
@@ -204,7 +230,7 @@ fansub encoder, arabic only, not updated since a while, closed source, no batch 
 ### PR videos
 - show time required to install kounyaki vs time required to install our tool
 
-### Usage examples
+### Examples of use-cases
 - MKV to MP4 (hardsubs)
 - Raws+Srt to mp4(muxed hardsubs)
 
@@ -213,13 +239,31 @@ fansub encoder, arabic only, not updated since a while, closed source, no batch 
 
 
 # issues to take into account
-: in filename and ,
+: in filename and other things mentioned by w7orld ,
 
 
-# qualtiy parameters in x264, crf only?
 
+
+# CLI progress bar and ffmpeg BS
+
+- FFmpeg writes to err out (2) not std out (1), had to repipe it.
+    - https://stackoverflow.com/questions/28372647/how-to-force-ffmpeg-into-non-interactive-mode
+    - useful for the match part https://stackoverflow.com/questions/1828921/powershell-and-console-app-output 
+
+- great answer https://stackoverflow.com/a/31232087/3696490
+    - few other relevant answers "saved for later" in my SoF account
+    - a la python cuz we never know https://itnext.io/overwrite-previously-printed-lines-4218a9563527
+- to complete with piping from ffmpeg as explained here : https://stackoverflow.com/questions/74686934/how-to-capture-continuous-realtime-progress-stream-of-output-from-ffmpeg#74688370
+- and to get frames/duration: https://stackoverflow.com/questions/66098161/how-do-i-reliably-find-the-frame-count-of-a-video-in-less-than-a-few-seconds
+- https://superuser.com/questions/650291/how-to-get-video-duration-in-seconds
+- https://onelinerhub.com/ffmpeg/count_number_of_frames
+
+## audio progress
+- to get duration in ms https://superuser.com/a/1319958/994508
+- then capture ffmpeg output field: out_time_ms and compute progress
 
 # Fonts:
+
 ## linux fonts (local, not portable)
 The ~/.fonts directory can be used for installing fonts locally. Create it if it does not exist.
 >> but can erase once done
@@ -273,9 +317,10 @@ https://www.google.com/search?q=temporarily+install+fonts+powershell&client=ubun
 ----
 
 
-Gui + exe
+# Gui + exe
 https://www.powershellgallery.com/packages/ps2exe/1.0.11
 
+https://medium.com/analytics-vidhya/how-to-create-a-gui-cli-standalone-app-in-python-with-gooey-and-pyinstaller-1a21d0914124
 
 
 

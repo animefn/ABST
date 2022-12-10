@@ -9,6 +9,7 @@
         [string]$output_destination,
         [string]$prefix="",
         [string]$suffix="",
+        [switch]$dev,
         [Parameter(Mandatory)][string[]]$files
         
     )
@@ -25,7 +26,16 @@ $tmp_location = (pwd).Path  #[io.path]::GetTempPath()
 $OS_delim = [IO.Path]::DirectorySeparatorChar
 
 
-$script_path = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -LiteralPath ([Environment]::GetCommandLineArgs()[0]) }
+#$script_path = if (-not $PSScriptRoot) { Split-Path -Parent (Convert-Path -LiteralPath ([environment]::GetCommandLineArgs()[0])) } else { $PSScriptRoot }
+if ($MyInvocation.MyCommand.CommandType -eq "ExternalScript"){ 
+    $ScriptPath = Split-Path -Parent -Path $MyInvocation.MyCommand.Definition 
+} else{ 
+    $ScriptPath = Split-Path -Parent -Path ([Environment]::GetCommandLineArgs()[0]) 
+    if (!$ScriptPath){ $ScriptPath = "." } 
+}
+
+$script_path =[IO.PATH]::GetFullPath($ScriptPath)
+
 $tools_path = $script_path + $OS_delim+"tools"
 write-output "running from $tools_path"
 
@@ -138,31 +148,41 @@ function extract_default_sub_n_audio($file_tracksInfo, $dest, $input_video,$base
     $internal_sub_found = $false
     $internal_audio_found = $false
     
-    # $full_aud_path =""
-    # $full_sub_path=$false
     if ($subpriority -eq "external_first"){
         $full_sub_path.value = process_ext_sub $input_video
     }
-    #$look_for_internal_sub $ ! (-not ($subpriority -eq "ignore")) -and 
+    
+    $audios =  (& $tools_path/mediainfo.exe --Output='Audio;%Duration% ' $input_video).split(" ")
+    $audio_duration=$audios[0]
+    $nb_audios = $audios.count -1
+    $is_unique_aud = (1 -eq $nb_audios)
+    #do same for subs
+    $nb_subs = ((& $tools_path/mediainfo.exe --Output='Text;%ID% ' $input_video).split(" ")).count -1
+    $is_unique_sub = (1 -eq $nb_subs)
+    echo "file has $nb_audios audios and $nb_subs internal subs "
     foreach ($entry in $file_tracksInfo){
         #write-output $entry.type
+        
         $codec_type= $entry.type
         $var1 =$entry.codec 
         $idx =$entry.id
         $is_default=$entry.properties.default_track  
         $codec = $entry.properties.codec_id
         $ext_from_codec= mkvextract_codecs_to_ext  $codec
-        #write-output "   >>   $idx $var1   def: $is_default  extension:$ext_from_codec"
+        # write-output "   >>   $idx $var1   def: $is_default  extension:$ext_from_codec"
         # if audio param is copy we don't care about this
-        if  (($codec_type -eq "audio")  -and $is_default){
+        # FIX HERE IF audio def or unique
+        if  (($codec_type -eq "audio")  -and ( $is_default -or $is_unique_aud)){
             $internal_audio_found = $true
             $aud_codec = $ext_from_codec
             write-output "found default audio $idx"
             if (( $audio -eq "copy") -or  (($audio -eq "non_aac_only") -and ($aud_codec -eq "aac") )  ){
                 # do not extract just copy
+                echo "audio does not need to be re-encoded non_aac_only & copy"
                 $full_aud_path.value = $input_video
             }elseif (( $audio -eq "ac3_to_aac") -and !($aud_codec -eq "ac3") ) {
                 #we are asked to encode ac3 only, audio is not ac3 so copy
+                echo "audio is not AC-3, copying losslessly"
                 $full_aud_path.value = $input_video
             }else{
                 # transcode while you extract here
@@ -171,7 +191,29 @@ function extract_default_sub_n_audio($file_tracksInfo, $dest, $input_video,$base
                 $aud_path = "$dest/$base_input_video.m4a"
                 # WARNING: using this without checking for failure!
                 
-                & $tools_path/ffmpeg.exe $ffmpeg_param -i "$input_video" -map 0:"$idx" -acodec aac $aud_path 
+                #& $tools_path/ffmpeg.exe $ffmpeg_param -progress pipe:1 -i "$input_video" -map 0:"$idx" -acodec aac $aud_path
+                & $tools_path/ffmpeg.exe $ffmpeg_param -progress pipe:1 -i "$input_video" -map 0:"$idx" -acodec aac $aud_path | Select-String 'out_time_ms=(\d+)' | ForEach-Object {
+                    $time_ms = [int] $_.Matches.Groups[1].Value
+                    $tt=[math]::Round($time_ms/10)
+                    #echo "was $time_ms reduced $tt"
+                    
+                    # if ($time_ms -ge 0){
+                    #     $time_ms_str = ([string]$time_ms)
+                    #     $t=($time_ms_str.Length)
+                    #     echo "string len $t"
+                    #     $time_ms = [int]($time_ms_str.Substring(0,$audio_duration.Length-1))
+                    # }
+                    
+                    $a= [math]::Round($tt / $audio_duration) 
+                    
+                    #echo "trimmed:($time_ms / $audio_duration) $a %" 
+                #Write-Progress -Activity 'ffmpeg' -Status 'Converting' -PercentComplete ($frame * 100 / $maxFrames)
+                # $a=($frame * 100 / $maxFrames)
+                # $a=[math]::Round($a)
+                    $str = "#"*$a
+                    $str2 = "-"*(100-$a)
+                    Write-Host -NoNewLine "`r$a% complete | $str $str2|"
+                }
                 # & $tools_path/mkvextract.exe tracks  "$input_video"  "$idx":"$base_input_video.$aud_codec"
                 $full_aud_path.value =$aud_path
                 
@@ -181,7 +223,8 @@ function extract_default_sub_n_audio($file_tracksInfo, $dest, $input_video,$base
         # if sub param is ignore we don't care about extracting sub
         if  ( ($subpriority -eq "internal_first")  -or (  ($subpriority -eq "external_first") -and  ($full_sub_path.value -eq "NO_EXT"))  ) { 
             
-            if  (($codec_type -eq "subtitles")  -and $is_default){
+            if  (($codec_type -eq "subtitles")  -and ($is_default -or $is_unique_sub)){
+                
                 # $full_sub_path  = ... process here and get null or a path
                 $internal_sub_found = $true
                 #write-output "found default sub"
@@ -202,7 +245,11 @@ function extract_default_sub_n_audio($file_tracksInfo, $dest, $input_video,$base
     }
     # here handle internal first but no internal found
     if  ( ($subpriority -eq "internal_first") -and (-not  ($internal_sub_found)) ){
-        $full_sub_path.value = process_ext_sub $input_video
+        #echo "found no internal despite internal first, gonna look for ext"
+        $ext_location = process_ext_sub $input_video 
+        if ($ext_location -ne "NO_EXT"){
+            $full_sub_path.value = $ext_location
+        }
     }
     
     
@@ -247,8 +294,10 @@ $count_files = 0
 foreach ($input_file in $files){
     #check if input file exists, if not continue
     $input_video = Convert-Path  -LiteralPath  $input_file #get abs path of file
+    echo "------------$input_video"
     $count_files += 1
     $base_input_video = ([io.fileinfo]$input_video).basename
+    $input_ext = ([System.IO.Path]::GetExtension($input_video)).ToLower()
     
     
     
@@ -266,13 +315,17 @@ foreach ($input_file in $files){
     ## get file info (nb of fonts/attachements)
     $info_array = & $tools_path/mkvmerge.exe  --identification-format json --identify $input_video | ConvertFrom-Json
     #$ff_info_array = & $tools_path/ffprobe.exe  -v quiet  -print_format json -show_format -show_streams $input_video | ConvertFrom-Json
+    echo $info_array.attachements
     $nb_fonts= $info_array.attachments.count
     echo "$base_input_video has: $nb_fonts fonts"
+    $maxFrames = & $tools_path/mediainfo.exe --Output="Video;%FrameCount%" $input_video
     
+    #$audio_duration=$audios_dur.split(" ")
 
     
     $final_subpath=$false
     $final_audiopath = $false
+    #handle here unique audio /unique sub (without default)
     extract_default_sub_n_audio  $info_array.tracks $tmp_dir $input_video $base_input_video ([ref]$final_audiopath) ([ref]$final_subpath)
     write-output "done with extraction of Audio and sub"
     
@@ -280,20 +333,33 @@ foreach ($input_file in $files){
     #write-output $final_audiopath
     #write-output $final_subpath
     
+    #if ($input_ext -eq ".mkv"){   #maybe better to do on nb fonts
+    if ($nb_fonts -gt 0){
+        #if ($input_ext -eq ".mkv"){
+        echo "extracting fonts..."
+        extract_fonts $input_video $tmp_dir $nb_fonts
+        #}
+        
+        
+        echo "loading fonts..."
+        if (-not ($dev.IsPresent)){
+            loadfonts_fromdir $tmp_dir
+        }else{
+            echo "skipped fonts installation bcz dev mode"
+        }
+    }
     
-    echo "extracting fonts..."
-    extract_fonts $input_video $tmp_dir $nb_fonts
-    echo "loading fonts..."
-    loadfonts_fromdir $tmp_dir
+    
+    
 
 
     #write avs script
     # Important our ffms2 command has audio... what if... vfr and stuff like that :thinking:
-    $filters_dir = $script_path+$OS_delim
+    $filters_dir = $tools_path+$OS_delim+"plugins"+$OS_delim
     Set-Content -LiteralPath "$avs_script_path" -Value '# autogenerated avs script by ABST tool' 
     Add-Content -LiteralPath "$avs_script_path" -Value "LoadPlugin(`"${filters_dir}ffms2.dll`")"   #replace with ffms2 variable
     Add-Content -LiteralPath "$avs_script_path" -Value "LoadPlugin(`"${filters_dir}vsfilter.dll`")"  #replace with vsfilter variable
-    Add-Content -LiteralPath "$avs_script_path" -Value "ffms2(`"$input_video`",atrack=-1, fpsnum=24000, fpsden=1001)  # convert to CFR"
+    Add-Content -LiteralPath "$avs_script_path" -Value "ffms2(`"$input_video`",atrack=-1, fpsnum=24000, fpsden=1001,cache=false)  # convert to CFR"
     Add-Content -LiteralPath "$avs_script_path" -Value "convertbits(8, dither=0)"
     Add-Content -LiteralPath "$avs_script_path" -Value "#ConvertToYV12()"
     if (-not($final_subpath -eq $false)) {
@@ -326,23 +392,45 @@ foreach ($input_file in $files){
     if ($audio -eq "disable"){ $final_audiopath = $false }
     $outfile = $output_destination + $OS_delim + $prefix+ $base_input_video +"_out_"+ $suffix+".mkv"
     
-    echo "encoding final output for $base_input_video..."
+    echo "encoding final output for $base_input_video...$final_audiopath"
+    echo "from mediainfo $maxFrames "
+    
+    
     if ($final_audiopath -ne $false){
         #-profile:v high -level 4  removed after preset
-        & $tools_path/ffmpeg.exe $ffmpeg_param -progress pipe:1 -i "$avs_script_path" -i $final_audiopath -map 0:0  -map 1:a:0  -c:v libx264 -pix_fmt yuv420p -crf $crf -preset $preset -c:a copy  $outfile
+        echo "$tools_path/ffmpeg.exe $ffmpeg_param -i `"$avs_script_path`" -i `"$final_audiopath`" -map 0:0  -map 1:a:0  -c:v libx264 -pix_fmt yuv420p -crf $crf -preset $preset -c:a copy  `"$outfile`""
+        & $tools_path/ffmpeg.exe $ffmpeg_param -progress pipe:1 -i "$avs_script_path" -i "$final_audiopath" -map 0:0  -map 1:a:0  -c:v libx264 -pix_fmt yuv420p -crf $crf -preset $preset -c:a copy  "$outfile"   | Select-String 'frame=(\d+)' | ForEach-Object {
+            $frame = [int] $_.Matches.Groups[1].Value
+            
+            #Write-Progress -Activity 'ffmpeg' -Status 'Converting' -PercentComplete ($frame * 100 / $maxFrames)
+            $a=($frame * 100 / $maxFrames)
+            $a=[math]::Round($a)
+            $str = "#"*$a
+            $str2 = "-"*(100-$a)
+            Write-Host -NoNewLine "`r$a% complete | $str $str2|"
+        }
+
     }else{
-        & $tools_path/ffmpeg.exe $ffmpeg_param -progress pipe:1 -i "$avs_script_path" -c:v libx264 -pix_fmt yuv420p -crf $crf -preset $preset -an $outfile
+        # else if final audio path is empty  do command without audio here
+        echo "disable audio feature not yet implemented EXP version"
+        #& $tools_path/ffmpeg.exe $ffmpeg_param -progress pipe:1 -i "$avs_script_path" -c:v libx264 -pix_fmt yuv420p -crf $crf -preset $preset -an $outfile
     } 
     ## 
-    # else if final audio path is empty
-    # do command without audio here
+    
     #unload fonts and clear temp directory
     # unload fonts
-    echo "removing fonts..."
-    unloadfonts_fromdir $tmp_dir
-
+    if ($nb_fonts -gt 0){
+        echo "removing fonts..."
+        if (-not ($dev.IsPresent)){
+            unloadfonts_fromdir $tmp_dir
+        }else{
+                echo "skipped fonts uninstall bcz dev mode"
+            }
+    }
     #cd ..  # exit temp_dir (if there) then delete it
-    rmdir -Force -r -LiteralPath $tmp_dir
+    if (-not ($dev.IsPresent)){
+        rmdir -Force -r -LiteralPath $tmp_dir
+    }
 
 }
 
