@@ -1,18 +1,24 @@
-﻿param (
-        [Parameter(Mandatory)][ValidateRange(0,51)][Int]$crf, 
-        [string]$preset='ultrafast',
-        [string]$tune='animation',
-        #profile and level?
-        [ValidateSet("copy","all_to_aac","ac3_to_aac","non_aac_only","disable")][string]$audio="non_aac_only",
-        [int]$qaac_quality,
-        [Parameter(Mandatory)][ValidateSet("ignore","internal_first","external_first")][string]$subpriority,
-        [string]$output_destination,
-        [string]$prefix="",
-        [string]$suffix="",
-        [switch]$dev,
-        [Parameter(Mandatory)][string[]]$files
-        
-    )
+﻿[CmdletBinding(DefaultParameterSetName="Default")]
+Param( 
+    
+    [Parameter(ParameterSetName="Default", mandatory=$true)][ValidateRange(0,51)][Int]$crf, 
+    [parameter(ParameterSetName="Default", mandatory=$false)][string]$preset='ultrafast',
+    [parameter(ParameterSetName="Default", mandatory=$false)][string]$tune='animation',
+    #[parameter(ParameterSetName="Default", mandatory=$false)]#profile and level?
+    [parameter(ParameterSetName="Default", mandatory=$false)][ValidateSet("copy","all_to_aac","ac3_to_aac","non_aac_only","disable")][string]$audio="non_aac_only",
+    [parameter(ParameterSetName="Default", mandatory=$false)][int]$qaac_quality,
+    [parameter(ParameterSetName="Default", mandatory=$true)][ValidateSet("ignore","internal_first","external_first")][string]$subpriority,
+    [parameter(ParameterSetName="Default", mandatory=$false)][ValidateSet(360,480,720,1080)][int]$auto_resize,
+    [parameter(ParameterSetName="Default", mandatory=$false)][string]$output_destination,
+    [parameter(ParameterSetName="Default", mandatory=$false)][string]$prefix="",
+    [parameter(ParameterSetName="Default", mandatory=$false)][string]$suffix="",
+    [parameter(ParameterSetName="Default", mandatory=$false)][switch]$dev,
+    [Parameter(ParameterSetName="Default", mandatory=$true)][string[]]$files,
+
+    [parameter(ParameterSetName="info", mandatory=$false)][switch]$version,
+    [parameter(ParameterSetName="info", mandatory=$false)][switch]$check_update
+
+)
     
 
 
@@ -42,6 +48,8 @@ write-output "running from $tools_path"
 
 [version]$my_version_counter = "0.9"
 
+
+
 function check_for_update(){
     # get json from ANIMEFN in variable
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -59,6 +67,19 @@ function check_for_update(){
     } 
     
 }
+
+function info_group(){
+    if (($version.IsPresent)){
+        echo ([string]$my_version_counter)
+        
+    }
+    if (($check_update.IsPresent)){
+        check_for_update
+    }
+    exit
+}
+info_group
+
 
 check_for_update 
 
@@ -184,7 +205,7 @@ function extract_default_sub_n_audio($file_tracksInfo, $dest, $input_video,$base
                 #we are asked to encode ac3 only, audio is not ac3 so copy
                 echo "audio is not AC-3, copying losslessly"
                 $full_aud_path.value = $input_video
-            }else{
+            }elseif ($audio -ne "disable"){
                 # transcode while you extract here
                 write-output "Encoding audio..."
                 $aud_path = "$dest/$base_input_video.$ext_from_codec"
@@ -195,25 +216,15 @@ function extract_default_sub_n_audio($file_tracksInfo, $dest, $input_video,$base
                 & $tools_path/ffmpeg.exe $ffmpeg_param -progress pipe:1 -i "$input_video" -map 0:"$idx" -acodec aac $aud_path | Select-String 'out_time_ms=(\d+)' | ForEach-Object {
                     $time_ms = [int] $_.Matches.Groups[1].Value
                     $tt=[math]::Round($time_ms/10)
-                    #echo "was $time_ms reduced $tt"
-                    
-                    # if ($time_ms -ge 0){
-                    #     $time_ms_str = ([string]$time_ms)
-                    #     $t=($time_ms_str.Length)
-                    #     echo "string len $t"
-                    #     $time_ms = [int]($time_ms_str.Substring(0,$audio_duration.Length-1))
-                    # }
-                    
+        
                     $a= [math]::Round($tt / $audio_duration) 
                     
-                    #echo "trimmed:($time_ms / $audio_duration) $a %" 
-                #Write-Progress -Activity 'ffmpeg' -Status 'Converting' -PercentComplete ($frame * 100 / $maxFrames)
-                # $a=($frame * 100 / $maxFrames)
-                # $a=[math]::Round($a)
+             
                     $str = "#"*$a
                     $str2 = "-"*(100-$a)
                     Write-Host -NoNewLine "`r$a% complete | $str $str2|"
                 }
+                Write-Host ""
                 # & $tools_path/mkvextract.exe tracks  "$input_video"  "$idx":"$base_input_video.$aud_codec"
                 $full_aud_path.value =$aud_path
                 
@@ -319,9 +330,23 @@ foreach ($input_file in $files){
     $nb_fonts= $info_array.attachments.count
     echo "$base_input_video has: $nb_fonts fonts"
     $maxFrames = & $tools_path/mediainfo.exe --Output="Video;%FrameCount%" $input_video
+    $dimW,$dimH =  (& $tools_path/mediainfo.exe  --Inform="Video;%Width%x%Height%" $input_video).split("x")
     
-    #$audio_duration=$audios_dur.split(" ")
+    #if set resize option
 
+    #$audio_duration=$audios_dur.split(" ")
+     
+    if ($auto_resize -ne 0){
+        $resize_dimH=$auto_resize
+        if ($dimH -lt $resize_dimH){
+            $resize_dimW = [math]::ceiling($resize_dimH*($dimW/$dimH))
+            echo "downscaling to $resize_dimH x $resize_dimW" 
+
+        }else{
+            echo "you did not request a downscale, this is not supported. output will have the original dimension"
+        }
+    }
+    
     
     $final_subpath=$false
     $final_audiopath = $false
@@ -365,6 +390,11 @@ foreach ($input_file in $files){
     if (-not($final_subpath -eq $false)) {
         Add-Content -LiteralPath "$avs_script_path" -Value "textsub(`"$final_subpath`" )" #replace with subtitles variable
     }
+    
+    if ($auto_resize -ne 0){
+        Add-Content -LiteralPath "$avs_script_path" -Value "Spline36Resize($resize_dimW,$resize_dimH )"
+    }
+    
     # Add-Content -LiteralPath "$avs_script_path" -Value "version()"
 
     
@@ -412,11 +442,12 @@ foreach ($input_file in $files){
 
     }else{
         # else if final audio path is empty  do command without audio here
-        echo "disable audio feature not yet implemented EXP version"
-        #& $tools_path/ffmpeg.exe $ffmpeg_param -progress pipe:1 -i "$avs_script_path" -c:v libx264 -pix_fmt yuv420p -crf $crf -preset $preset -an $outfile
+        # echo "disable audio feature not yet implemented EXP version"
+         #-progress pipe:1
+        & $tools_path/ffmpeg.exe $ffmpeg_param -i "$avs_script_path" -i "$input_video" -map 0:0  -map_metadata 1:s:0 -c:v libx264 -pix_fmt yuv420p -crf $crf -preset $preset -an $outfile
     } 
     ## 
-    
+    Write-Host ""
     #unload fonts and clear temp directory
     # unload fonts
     if ($nb_fonts -gt 0){

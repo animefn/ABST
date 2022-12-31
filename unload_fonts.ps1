@@ -2,7 +2,7 @@
 param($file)
 
 $signature = @'
-[DllImport("gdi32.dll")]
+[DllImport("gdi32.dll", CharSet = CharSet.Unicode)]
 public static extern bool RemoveFontResource(string lpszFilename);
 '@
 

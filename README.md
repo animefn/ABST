@@ -1,3 +1,34 @@
+
+# Dev instructions
+
+The developement is sort of separated
+ABST -CLI is the core program written in powershell. PS was chosen  for its ease of use, readability and to allow other people to reuse it easily
+
+ABST GUI, the gui is written in pyqt (used python for ease of developement instead of using qt in c++)
+
+## dev workflow CLI
+requirement: ps2exe
+modify script
+convert to exe with ps2exe
+
+## dev workflow GUI
+requirements: python ofc
+and
+` pip install  PyQt6 pyqt6-tools qt-material  pyinstaller  `
+- Modify .ui file
+- generate python code for ui `pyuic6 -o abst_ui.py .\abst.ui `
+- adapt translation...
+- modify `gui.py` accordingly
+- export styles by following qt-material doc
+- generate distributable file of gui `pyinstaller.exe --onefile --windowed .\run_abst.py`
+
+### some qt hints
+-  https://stackoverflow.com/questions/5552873/qt4-layout-in-a-groupbox
+        ui->groupBox->setLayout(ui->horizontalLayout); # to set the box as an alignement thing too
+        - you can also use vert/grid layout and then morph it into groupbox and edit the title
+- https://pythonbasics.org/qt-designer-python/
+- https://www.pythontutorial.net/pyqt/pyqt-qfiledialog/
+
 # troll official motivation
 
 sometimes you might have a lot of content you extracted from BD/DVd with makemkv or some shit and just want to binge watch them on the go on every device so this tools make it easier, it is portable, and can be used even without admin priveleges.
@@ -160,14 +191,20 @@ full example:
 
 # Roadmap for dev and next version
 ## v1 investigate
--   `if  (($codec_type -eq "audio")  -and $is_default){` problem here if input is mp4 it may have 1 audio and 
-- same with subs, solution: if (is default or unique audio)  [same with sub]
-
-- P.s for temp files let us keep them in some hidden folder, c temp, or OS default temp folder 
+- the GUI 
 - qaac audio
 - test single files with sub in same folder, and files without subtitles
-- the UI iteself
-- video resize!
+
+- creation of the script failed due to massively long name, some if on path.length...
+>>> enable longpath in compilation + do some checks on sub, audio, and avs script
+
+- P.s for temp files let us keep them in some hidden folder, c temp/or OS default temp folder 
+
+- add a blank echo after progres bars to restore the line break [done-tobeTested]
+- video resize! [done]
+    - get video dim compute SELECTED*(length/width)
+    - if new dim >= initial dim -> no resize
+    - 
 - packaging entire program + dependendcies etc as 1single .exe?(with ui)
 >>> goal: distribute 2 files only: cli_only, gui
 ## V1.X 
@@ -262,6 +299,10 @@ fansub encoder, arabic only, not updated since a while, closed source, no batch 
 - to get duration in ms https://superuser.com/a/1319958/994508
 - then capture ffmpeg output field: out_time_ms and compute progress
 
+
+# chapters 
+https://www.reddit.com/r/ffmpeg/comments/b62deh/how_to_copy_chapters_from_a_file_to_another/
+
 # Fonts:
 
 ## linux fonts (local, not portable)
@@ -300,6 +341,7 @@ with FontLoaderEx: https://github.com/0xb160c0c5/FontLoaderEx/issues/1
 > https://www.ghacks.net/2007/08/16/clear-all-non-system-fonts-automatically/
 
 # ###################
+
 fmi
 https://www.universalmediaserver.com/forum/viewtopic.php?t=3035
 
