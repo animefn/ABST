@@ -10,3 +10,11 @@
 */*.TTF
 */*.otf
 */*.OTF
+gui/others
+*.zip
+*/*.zip
+*.exe
+*/*.exe
+*/*/*.exe
+*/*/*/*.exe
+local_release

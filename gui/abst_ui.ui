@@ -1,0 +1,556 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>820</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <property name="layoutDirection">
+   <enum>Qt::LeftToRight</enum>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0" rowspan="5">
+     <widget class="QGroupBox" name="groupBox">
+      <property name="title">
+       <string>ABST app</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <property name="leftMargin">
+        <number>10</number>
+       </property>
+       <property name="topMargin">
+        <number>10</number>
+       </property>
+       <property name="rightMargin">
+        <number>10</number>
+       </property>
+       <property name="bottomMargin">
+        <number>10</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="label_ver">
+         <property name="text">
+          <string>You are using version:</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_verNb">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pbtn_update">
+         <property name="text">
+          <string>Update</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pbtn_donate">
+         <property name="text">
+          <string>Donate 
+ to support us</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>128</width>
+           <height>398</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Language</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="comboBox_lang"/>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Theme</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="comboBox_style">
+         <item>
+          <property name="text">
+           <string>modern light</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>classic light</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>dark_blue</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>dark_teal</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>dark_cyan</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>dark_pink</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>light_blue</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>light_pink</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QGroupBox" name="groupBox">
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
+        <property name="title">
+         <string>video settings</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_2">
+         <property name="leftMargin">
+          <number>10</number>
+         </property>
+         <property name="rightMargin">
+          <number>10</number>
+         </property>
+         <item row="3" column="1">
+          <widget class="QComboBox" name="comboBox_downscale">
+           <item>
+            <property name="text">
+             <string>original</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>1080p</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>720p</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>480p</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>360p</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_5">
+           <property name="text">
+            <string>preset</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_9">
+           <property name="text">
+            <string>tune</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QComboBox" name="comboBox_tune">
+           <property name="currentIndex">
+            <number>1</number>
+           </property>
+           <item>
+            <property name="text">
+             <string>film</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>animation</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>grain</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_4">
+           <property name="text">
+            <string>crf</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="label_10">
+           <property name="text">
+            <string>Downscale to</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QComboBox" name="comboBox_preset">
+           <property name="currentIndex">
+            <number>4</number>
+           </property>
+           <item>
+            <property name="text">
+             <string>ultrafast</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>superfast</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>veryfast</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>faster</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>fast</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>medium</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>slow</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>slower</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>veryslow</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QDoubleSpinBox" name="spinBox_crf">
+           <property name="decimals">
+            <number>1</number>
+           </property>
+           <property name="maximum">
+            <double>51.000000000000000</double>
+           </property>
+           <property name="singleStep">
+            <double>0.100000000000000</double>
+           </property>
+           <property name="value">
+            <double>23.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="">
+        <property name="title">
+         <string>Audio and sub settings</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_3">
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_6">
+           <property name="text">
+            <string>Audio setting</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_7">
+           <property name="text">
+            <string>Sub settings</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_8">
+           <property name="text">
+            <string>audio quality</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QComboBox" name="comboBox_audio">
+           <item>
+            <property name="text">
+             <string>non_aac_only</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>ac3_to_aac</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>all_to_aac</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>copy</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>disable</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QSpinBox" name="spinBox_audio_quality"/>
+         </item>
+         <item row="2" column="1">
+          <widget class="QComboBox" name="comboBox_subsettings">
+           <item>
+            <property name="text">
+             <string>internal_first</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>external_first</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>ignore</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item row="1" column="1">
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <property name="leftMargin">
+       <number>4</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>4</number>
+      </property>
+      <item>
+       <widget class="QCheckBox" name="checkBox_outdir">
+        <property name="text">
+         <string>Do not save in same folder as input , use:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="output_path">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="placeholderText">
+         <string>if empty each output will be saved next its input</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="tbtn_outdir">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>...</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item row="2" column="1">
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <property name="leftMargin">
+       <number>4</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>4</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="label_11">
+        <property name="text">
+         <string>Drag and drop files below or use add button</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="tbtn_addfiles">
+        <property name="text">
+         <string>add</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="tbtn_rmfiles">
+        <property name="text">
+         <string>remove</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item row="3" column="1">
+     <widget class="QTableWidget" name="tableWidget_files">
+      <property name="font">
+       <font>
+        <pointsize>8</pointsize>
+       </font>
+      </property>
+      <property name="editTriggers">
+       <set>QAbstractItemView::NoEditTriggers</set>
+      </property>
+      <property name="alternatingRowColors">
+       <bool>true</bool>
+      </property>
+      <property name="textElideMode">
+       <enum>Qt::ElideLeft</enum>
+      </property>
+      <property name="sortingEnabled">
+       <bool>true</bool>
+      </property>
+      <property name="columnCount">
+       <number>2</number>
+      </property>
+      <attribute name="verticalHeaderMinimumSectionSize">
+       <number>14</number>
+      </attribute>
+      <attribute name="verticalHeaderDefaultSectionSize">
+       <number>14</number>
+      </attribute>
+      <column/>
+      <column/>
+     </widget>
+    </item>
+    <item row="4" column="1">
+     <widget class="QPushButton" name="pbtn_launchCLI">
+      <property name="text">
+       <string>Start encoding</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>820</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

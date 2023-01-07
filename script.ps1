@@ -1,7 +1,7 @@
 ﻿[CmdletBinding(DefaultParameterSetName="Default")]
 Param( 
     
-    [Parameter(ParameterSetName="Default", mandatory=$true)][ValidateRange(0,51)][Int]$crf, 
+    [Parameter(ParameterSetName="Default", mandatory=$true)][ValidateRange(0,51)][float]$crf, 
     [parameter(ParameterSetName="Default", mandatory=$false)][string]$preset='ultrafast',
     [parameter(ParameterSetName="Default", mandatory=$false)][string]$tune='animation',
     #[parameter(ParameterSetName="Default", mandatory=$false)]#profile and level?
@@ -13,13 +13,16 @@ Param(
     [parameter(ParameterSetName="Default", mandatory=$false)][string]$prefix="",
     [parameter(ParameterSetName="Default", mandatory=$false)][string]$suffix="",
     [parameter(ParameterSetName="Default", mandatory=$false)][switch]$dev,
-    [Parameter(ParameterSetName="Default", mandatory=$true)][string[]]$files,
+    [Parameter(ParameterSetName="Default", mandatory=$true)][string]$files_str,
 
     [parameter(ParameterSetName="info", mandatory=$false)][switch]$version,
     [parameter(ParameterSetName="info", mandatory=$false)][switch]$check_update
 
 )
     
+$files = $files_str -split "::"
+# echo $files.Length
+# echo $files
 
 
 $ErrorActionPreference = 'SilentlyContinue'
@@ -28,8 +31,9 @@ $mkve_params = "-q" #add -q when dev done
 $ffmpeg_param = "-v" , "quiet" ,"-stats", "-y","-nostdin";  #add -v quiet -stats  when no longer debugging
 
 
-$tmp_location = (pwd).Path  #[io.path]::GetTempPath() 
 $OS_delim = [IO.Path]::DirectorySeparatorChar
+$tmp_location = (pwd).Path  #[io.path]::GetTempPath() 
+$tmp_location = $tmp_location + $OS_delim + "temp"
 
 
 #$script_path = if (-not $PSScriptRoot) { Split-Path -Parent (Convert-Path -LiteralPath ([environment]::GetCommandLineArgs()[0])) } else { $PSScriptRoot }
@@ -43,10 +47,10 @@ if ($MyInvocation.MyCommand.CommandType -eq "ExternalScript"){
 $script_path =[IO.PATH]::GetFullPath($ScriptPath)
 
 $tools_path = $script_path + $OS_delim+"tools"
-write-output "running from $tools_path"
 
 
-[version]$my_version_counter = "0.9"
+
+[version]$my_version_counter = "0.94"
 
 
 
@@ -59,7 +63,8 @@ function check_for_update(){
 
     
     if ($latest_version -gt $my_version_counter) {
-    Write-Output "You need to get newer version from $update_url"
+    # $update_url
+    Write-Output "A newer version is available. You need to get the latest version from our github repo"
     # get json.update msg
     # get json.update url
     } elseif ($New_ver -eq $Old_ver) {
@@ -69,20 +74,28 @@ function check_for_update(){
 }
 
 function info_group(){
+    $exit=$false
     if (($version.IsPresent)){
         echo ([string]$my_version_counter)
+        $exit=$true
         
     }
     if (($check_update.IsPresent)){
         check_for_update
+        $exit=$true
+        
     }
-    exit
+    if ($exit -eq $true){
+        exit
+    }
+    
 }
 info_group
 
 
 check_for_update 
 
+write-output "running from $tools_path"
 
 
 
@@ -305,6 +318,12 @@ $count_files = 0
 foreach ($input_file in $files){
     #check if input file exists, if not continue
     $input_video = Convert-Path  -LiteralPath  $input_file #get abs path of file
+    $input_video_exists = Test-Path -LiteralPath $input_video -PathType Leaf
+
+    if (!$input_video_exists) {
+        echo "$input_video does not Exist! skipping"
+        continue
+    }
     echo "------------$input_video"
     $count_files += 1
     $base_input_video = ([io.fileinfo]$input_video).basename
@@ -330,7 +349,8 @@ foreach ($input_file in $files){
     $nb_fonts= $info_array.attachments.count
     echo "$base_input_video has: $nb_fonts fonts"
     $maxFrames = & $tools_path/mediainfo.exe --Output="Video;%FrameCount%" $input_video
-    $dimW,$dimH =  (& $tools_path/mediainfo.exe  --Inform="Video;%Width%x%Height%" $input_video).split("x")
+    $source_dimW,$source_dimH =  (& $tools_path/mediainfo.exe  --Inform="Video;%Width%x%Height%" $input_video).split("x")
+    $ff_btconv=""
     
     #if set resize option
 
@@ -338,12 +358,14 @@ foreach ($input_file in $files){
      
     if ($auto_resize -ne 0){
         $resize_dimH=$auto_resize
-        if ($dimH -lt $resize_dimH){
-            $resize_dimW = [math]::ceiling($resize_dimH*($dimW/$dimH))
+        if ($source_dimH -lt $resize_dimH){
+            $resize_dimW = [math]::ceiling($resize_dimH*($source_dimW/$source_dimH))
             echo "downscaling to $resize_dimH x $resize_dimW" 
+            $bt_conv = ($resize_dimH -le 480 ) -and ($source_dimH -ge 720) #it means we're converting FHD or HD to SD--> so BT conversion
+            $ff_btconv = "-vf colormatrix=bt709:bt601"
 
         }else{
-            echo "you did not request a downscale, this is not supported. output will have the original dimension"
+            echo "you did not request a downscale, you requested dimensions that are the same or bigger than input's dimension. Upscale not supported. output will have the original dimension"
         }
     }
     
@@ -384,6 +406,12 @@ foreach ($input_file in $files){
     Set-Content -LiteralPath "$avs_script_path" -Value '# autogenerated avs script by ABST tool' 
     Add-Content -LiteralPath "$avs_script_path" -Value "LoadPlugin(`"${filters_dir}ffms2.dll`")"   #replace with ffms2 variable
     Add-Content -LiteralPath "$avs_script_path" -Value "LoadPlugin(`"${filters_dir}vsfilter.dll`")"  #replace with vsfilter variable
+    # if ($bt_conv){
+    #     Add-Content -LiteralPath "$avs_script_path" -Value "LoadPlugin(`"${filters_dir}ColorMatrix32.dll`")"  #replace with vsfilter variable
+
+    # }
+    
+
     Add-Content -LiteralPath "$avs_script_path" -Value "ffms2(`"$input_video`",atrack=-1, fpsnum=24000, fpsden=1001,cache=false)  # convert to CFR"
     Add-Content -LiteralPath "$avs_script_path" -Value "convertbits(8, dither=0)"
     Add-Content -LiteralPath "$avs_script_path" -Value "#ConvertToYV12()"
@@ -392,6 +420,8 @@ foreach ($input_file in $files){
     }
     
     if ($auto_resize -ne 0){
+        # if ($bt_conv){ Add-Content -LiteralPath "$avs_script_path" -Value "ColorMatrix(mode=`"Rec.709->Rec.601`", threads=0)"}
+        
         Add-Content -LiteralPath "$avs_script_path" -Value "Spline36Resize($resize_dimW,$resize_dimH )"
     }
     
@@ -404,32 +434,31 @@ foreach ($input_file in $files){
     
     # CREATE DESTINATION FILE name
     
-    # if not destination provided we use the same as input
+    ## if destination is not provided we use the same dest as input
     if ($output_destination.length -eq 0){
         #then make the out dest the same as source
 
         $output_destination =(get-item -LiteralPath $input_video).DirectoryName
         
     }
-    # if the user provider (via CLI) a non-existing destination create it
+    ## if the user provided (via CLI) a non-existing destination create it
     if ((Test-Path -PathType Container  -LiteralPath $output_destination) -eq $false ){
         
         mkdir $output_destination
     }
 
-    # [string]$preset='ultrafast',
-    #     [string]$tune='animation',
+
     if ($audio -eq "disable"){ $final_audiopath = $false }
     $outfile = $output_destination + $OS_delim + $prefix+ $base_input_video +"_out_"+ $suffix+".mkv"
     
-    echo "encoding final output for $base_input_video...$final_audiopath"
-    echo "from mediainfo $maxFrames "
+    echo "encoding final output for [$base_input_video]..."
+    
     
     
     if ($final_audiopath -ne $false){
         #-profile:v high -level 4  removed after preset
-        echo "$tools_path/ffmpeg.exe $ffmpeg_param -i `"$avs_script_path`" -i `"$final_audiopath`" -map 0:0  -map 1:a:0  -c:v libx264 -pix_fmt yuv420p -crf $crf -preset $preset -c:a copy  `"$outfile`""
-        & $tools_path/ffmpeg.exe $ffmpeg_param -progress pipe:1 -i "$avs_script_path" -i "$final_audiopath" -map 0:0  -map 1:a:0  -c:v libx264 -pix_fmt yuv420p -crf $crf -preset $preset -c:a copy  "$outfile"   | Select-String 'frame=(\d+)' | ForEach-Object {
+        #echo "$tools_path/ffmpeg.exe $ffmpeg_param -i `"$avs_script_path`" -i `"$final_audiopath`" -map 0:0  -map 1:a:0  -c:v libx264 -pix_fmt yuv420p -crf $crf -preset $preset -c:a copy  `"$outfile`""
+        & $tools_path/ffmpeg.exe $ffmpeg_param -progress pipe:1 -i "$avs_script_path" -i "$final_audiopath" -map 0:0  -map 1:a:0  -c:v libx264 -pix_fmt yuv420p $ff_btconv -crf $crf -preset $preset -c:a copy  "$outfile"   | Select-String 'frame=(\d+)' | ForEach-Object {
             $frame = [int] $_.Matches.Groups[1].Value
             
             #Write-Progress -Activity 'ffmpeg' -Status 'Converting' -PercentComplete ($frame * 100 / $maxFrames)
@@ -443,8 +472,17 @@ foreach ($input_file in $files){
     }else{
         # else if final audio path is empty  do command without audio here
         # echo "disable audio feature not yet implemented EXP version"
-         #-progress pipe:1
-        & $tools_path/ffmpeg.exe $ffmpeg_param -i "$avs_script_path" -i "$input_video" -map 0:0  -map_metadata 1:s:0 -c:v libx264 -pix_fmt yuv420p -crf $crf -preset $preset -an $outfile
+         #
+        & $tools_path/ffmpeg.exe $ffmpeg_param -progress pipe:1 -i "$avs_script_path" -i "$input_video" -map 0:0  -map_metadata 1:s:0 -c:v libx264 -pix_fmt yuv420p $ff_btconv -crf $crf -preset $preset -an "$outfile"   | Select-String 'frame=(\d+)' | ForEach-Object {
+            $frame = [int] $_.Matches.Groups[1].Value
+            
+            #Write-Progress -Activity 'ffmpeg' -Status 'Converting' -PercentComplete ($frame * 100 / $maxFrames)
+            $a=($frame * 100 / $maxFrames)
+            $a=[math]::Round($a)
+            $str = "#"*$a
+            $str2 = "-"*(100-$a)
+            Write-Host -NoNewLine "`r$a% complete | $str $str2|"
+        }
     } 
     ## 
     Write-Host ""
