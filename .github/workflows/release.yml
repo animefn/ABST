@@ -38,8 +38,7 @@ jobs:
           echo "---------------"
           ls
           echo "############################################################---------------"
-          Compress-Archive -LiteralPath ABST_${env:VER}
-          
+          Compress-Archive -LiteralPath ABST_${env:VER}  -DestinationPath ./ABST_${env:VER}.zip
           ls
           
         
