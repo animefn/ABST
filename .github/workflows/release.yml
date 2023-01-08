@@ -1,13 +1,9 @@
 run-name: new release 🚀
-env:
-  DAY_OF_WEEK: Monday
 on:
   push:
     paths: 
     - '.github/ver.env'
-    # Sequence of patterns matched against refs/tags
-#    tags:
-#    - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
 
 name: Upload Release Asset
 
@@ -33,13 +29,17 @@ jobs:
           $PSVersionTable
           pip --version
           ./local_release.ps1 -opath ABST_${env:VER}
-          echo ${env:VER} ${env:DAY_OF_WEEK}
+          echo ${env:VER}
           echo $VER 
           echo "---------------"
           ls
           echo "############################################################---------------"
           Compress-Archive -LiteralPath ABST_${env:VER}  -DestinationPath ./ABST_${env:VER}.zip
           ls
+      - name: create 7z release
+        uses: edgarrc/action-7z@v1
+        with:
+          args: 7z a -t7z -mx=9 ./ABST_${env:VER}.7z ./ABST_${env:VER}/
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -60,6 +60,15 @@ jobs:
           asset_path: ./ABST_${{env.VER}}.zip
           asset_name: ABST_${{env.VER}}.zip
           asset_content_type: application/zip
+      - name: Upload Release Asset 7z
+        id: upload-release-asset-7z 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: ./ABST_${{env.VER}}.7z
+          asset_name: ABST_${{env.VER}}.7z
           
         
   # build:
