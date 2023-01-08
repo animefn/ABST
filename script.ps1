@@ -6,7 +6,7 @@ Param(
     [parameter(ParameterSetName="Default", mandatory=$false)][string]$tune='animation',
     #[parameter(ParameterSetName="Default", mandatory=$false)]#profile and level?
     [parameter(ParameterSetName="Default", mandatory=$false)][ValidateSet("copy","all_to_aac","ac3_to_aac","non_aac_only","disable")][string]$audio="non_aac_only",
-    [parameter(ParameterSetName="Default", mandatory=$false)][int]$qaac_quality,
+    [parameter(ParameterSetName="Default", mandatory=$false)][ValidateRange(0,127)][int]$qaac_quality=91,
     [parameter(ParameterSetName="Default", mandatory=$true)][ValidateSet("ignore","internal_first","external_first")][string]$subpriority,
     [parameter(ParameterSetName="Default", mandatory=$false)][ValidateSet(360,480,720,1080)][int]$auto_resize,
     [parameter(ParameterSetName="Default", mandatory=$false)][string]$output_destination,
@@ -29,7 +29,7 @@ $files = $files_str -split "::"
 $ErrorActionPreference = 'SilentlyContinue'
 
 $mkve_params = "-q" #add -q when dev done
-$ffmpeg_param = "-v" , "quiet" ,"-stats", "-y","-nostdin";  #add -v quiet -stats  when no longer debugging
+$ffmpeg_param = "-v" , "quiet" , "-y","-nostdin";  #add -v quiet -stats  when no longer debugging #edit: removed -stats
 
 
 $OS_delim = [IO.Path]::DirectorySeparatorChar
@@ -51,7 +51,7 @@ $tools_path = $script_path + $OS_delim+"tools"
 
 
 
-[version]$my_version_counter = "0.971"
+[version]$my_version_counter = "0.97"
 
 
 
@@ -221,22 +221,47 @@ function extract_default_sub_n_audio($file_tracksInfo, $dest, $input_video,$base
                 $full_aud_path.value = $input_video
             }elseif ($audio -ne "disable"){
                 # transcode while you extract here
-                write-output "Encoding audio..."
+                
                 $aud_path = "$dest/$base_input_video.$ext_from_codec"
                 $aud_path = "$dest/$base_input_video.m4a"
+                write-output "Encoding audio..."
                 # WARNING: using this without checking for failure!
                 
-                #& $tools_path/ffmpeg.exe $ffmpeg_param -progress pipe:1 -i "$input_video" -map 0:"$idx" -acodec aac $aud_path
-                & $tools_path/ffmpeg.exe $ffmpeg_param -progress pipe:1 -i "$input_video" -map 0:"$idx" -acodec aac $aud_path | Select-String 'out_time_ms=(\d+)' | ForEach-Object {
-                    $time_ms = [int] $_.Matches.Groups[1].Value
-                    $tt=[math]::Round($time_ms/10)
+                # #& $tools_path/ffmpeg.exe $ffmpeg_param -progress pipe:1 -i "$input_video" -map 0:"$idx" -acodec aac $aud_path
+                # & $tools_path/ffmpeg.exe $ffmpeg_param -progress pipe:1 -i "$input_video" -map 0:"$idx" -acodec aac $aud_path | Select-String 'out_time_ms=(\d+)' | ForEach-Object {
+                #     $time_ms = [int] $_.Matches.Groups[1].Value
+                #     $tt=[math]::Round($time_ms/10)
         
-                    $a= [math]::Round($tt / $audio_duration) 
+                #     $a= [math]::Round($tt / $audio_duration) 
                     
              
-                    $str = "#"*$a
-                    $str2 = "-"*(100-$a)
-                    Write-Host -NoNewLine "`r$a% complete | $str $str2|"
+                #     $str = "#"*$a
+                #     $str2 = "-"*(100-$a)
+                #     Write-Host -NoNewLine "`r$a% complete | $str $str2|"
+                # }
+                $env:qpath = "$tools_path\qaac\qaac.exe"
+                $env:qparam = "-V $qaac_quality"
+                $env:qout = $aud_path
+
+                $env:ffpath = "$tools_path\ffmpeg.exe"
+                $env:ffintput = $input_video
+                $env:ffparam = "-v quiet"
+                $env:ffmap = "-map 0:$idx"
+                
+                #.\qaac.exe --verbose -V 94 .\aud.m4a  2>$NULL
+                #$myCMD= 
+                # cmd /s /c --% " echo %ffintput% "
+                # cmd /s /c --% " echo %ffpath% '%ffintput%' %ffmap%"
+                # cmd /s /c --% " echo %ffpath%  "%ffintput%" %ffmap%  %qpath% %qparam%  %qout%  "
+                # echo "-------------------------------------------"
+                cmd /s /c --% " "%ffpath%" %ffparam% -i "%ffintput%" %ffmap% -f wav - | "%qpath%" %qparam% - -o "%qout%" " 2>&1 | Select-String '(\d+:\d+.+) '| ForEach-Object {
+                    
+                $prog,$speed=(($_.Matches.Groups[0].Value) -split(" "))
+                #$conv = ([TimeSpan]$prog).TotalMilliseconds
+                
+                $ts =  [timespan]::FromMilliseconds($audio_duration)
+                $tss = ("{0:hh\:mm\:ss\.fff}" -f $ts)
+                Write-Host -NoNewLine "`r$prog out of $tss complete | $speed "
                 }
                 Write-Host ""
                 # & $tools_path/mkvextract.exe tracks  "$input_video"  "$idx":"$base_input_video.$aud_codec"

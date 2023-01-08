@@ -340,7 +340,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QGroupBox" name="">
+       <widget class="QGroupBox" name="groupBox">
         <property name="title">
          <string>Audio and sub settings</string>
         </property>
@@ -399,7 +399,14 @@
           </widget>
          </item>
          <item row="1" column="1">
-          <widget class="QSpinBox" name="spinBox_audio_quality"/>
+          <widget class="QSpinBox" name="spinBox_audio_quality">
+           <property name="maximum">
+            <number>127</number>
+           </property>
+           <property name="value">
+            <number>91</number>
+           </property>
+          </widget>
          </item>
          <item row="2" column="1">
           <widget class="QComboBox" name="comboBox_subsettings">

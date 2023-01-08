@@ -91,7 +91,7 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
         
     
         self.param_files = set()
-        self.spinBox_audio_quality.setEnabled(False) #renable later when deciding settings
+        
 
         #video parameters
         # self.param_crf = None
@@ -288,15 +288,18 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
         outpath=self.output_path.text()
         downscale=self.comboBox_downscale.currentText()
         param_files_str="::".join(f"{str(e)}" for e in self.param_files)
-        args+=f"-crf {int(self.spinBox_crf.value())}"
+        args+=f"-crf {float(self.spinBox_crf.value())}"
         args+=" -preset "+ self.comboBox_preset.currentText()
         args+= " -tune "+self.comboBox_tune.currentText()
         
         
         args+= " -audio "+self.comboBox_audio.currentText()
+        args+=f" -qaac_quality {int(self.spinBox_audio_quality.value())}"
         args+= "  -subpriority "+self.comboBox_subsettings.currentText()
         if downscale != "original":
             args+= " -auto_resize "+(self.comboBox_downscale.currentText()).replace('p', '')
+            
+            
         if outpath != "":
             args += f" -output_destination \"{outpath}\" " 
         if len(param_files_str)==0:

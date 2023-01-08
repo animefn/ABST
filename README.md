@@ -30,7 +30,7 @@ For most users you want to read this section only and skip the next section abou
 full example:
 ` .\abst_cli.exe -crf 24 -preset "medium" -subpriority "internal_first" -audio "all_to_aac" -f $input_video1` each output will be in its corresponding input's directory
 - Currently no way to set profile nor level, they are left blank in encoder command.
-- `crf` values (official ones): .. from  0 to 51 (no default)
+- `crf` values (official ones): .. from  0 to 51 (no default), prefer values around 19-25 for a secondary hardsubs encode for distribution. Lower means higher quality at the expense of a bigger filesize.
 - `preset` values (official ones): default ultrafast
 - `tune` (official x264 ones) animation by default
 - `subpriority` : 
@@ -43,6 +43,9 @@ full example:
     - "ac3_to_aac": any audio will be copied except ac3 audio will re-encoded
     - "non_aac_only": if input has non-aac audio, it will be reenocded (default )
     - "disable": output will not have any audio (for people doing FX/TS w/out a need for audio)
+- `qaac_quality`:
+    - [int], a value between 0 and 127. Prefer values around 90-100. Higher means better quality at the expense of bigger filesize.
+    This value, corresponds to the --tvbr value in qaac encoder.
 - `output_destination` 
     - "" empty => default: do not provide a value, and the same folder of the input will be used
     - /path/to/folder a directory to save output
