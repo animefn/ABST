@@ -29,7 +29,7 @@ jobs:
         run: |
           $PSVersionTable
           pip --version
-          ./local_release.ps1 opath ABST_${VER}
+          ./local_release.ps1 -opath ABST_${VER}
           ls
         
   # build:

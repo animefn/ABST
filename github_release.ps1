@@ -12,5 +12,5 @@ $Vg= ((python .\gui\abst_gui.py  -v) -split ":")[1].replace(' ','')
 
 
 
-"Ver=${Vc}g${Vg}" >.github/ver.env
-#echo  "${Vc}g${Vg}"
+#"VER=${Vc}g${Vg}" >.github/ver.env
+echo  "VER=${Vc}g${Vg}" >.github/ver.env
