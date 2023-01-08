@@ -14,11 +14,11 @@ jobs:
     name: Package ABST on Windows
     runs-on: windows-latest
     steps:
-      # - uses: actions/checkout@v3
-      # - name: Install dependencies
-      #   shell: powershell
-      #   run: |
-      #     Set-PSRepository PSGallery -InstallationPolicy Trusted
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        shell: powershell
+        run: |
+          Set-PSRepository PSGallery -InstallationPolicy Trusted
       #     Install-Module ps2exe
       #     pip install  PyQt5 pyqt5-tools  pyinstaller 
       - name: version #add env var # This would actually build your project, using zip for an example artifact
