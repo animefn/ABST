@@ -31,8 +31,8 @@ jobs:
         run: |
           $PSVersionTable
           pip --version
-          echo $Env:$FOO $Env:$VER 
-          echo $FOO $VER 
+          echo $Env:$VER 
+          echo $VER 
           
         
   # build:
