@@ -16,12 +16,17 @@ The software is is called ABST: AFN's Batch (hard)Subtitling Tool. The name is a
 ---> mpv: libass + no bulk/automated processing for fonts
 - staxrip, handbrake, writing manual scripts, other solutions using of mpv/ffmpeg w/out the correct fonts or with libass making the subtitles appear wrongly
 
+# Simple Usage guide (GUI).
+For most users you want to read this section only and skip the next section about CLI.
 
 
-# syntax and Usage
+
+# syntax and Usage (CLI) - for advanced users
 - Example
 `abst.exe -crf 22  -preset -subpriority`
+
 ` .\abst.exe -crf 24 -subpriority "internal_first" -f "C:\path\input_video1.mkv" -output_destination "out2"` will out output to out2 folder
+
 ` .\abst.exe -crf 24 -subpriority "internal_first" -f "C:\path\input_video1.mkv::C:\path\input_video2.mkv::C:\path\input_video3"` each output will be in its corresponding input's directory
 full example:
 ` .\abst.exe -crf 24 -preset "medium" -subpriority "internal_first" -audio "all_to_aac" -f $input_video1` each output will be in its corresponding input's directory
@@ -43,7 +48,7 @@ full example:
     - "" empty => default: do not provide a value, and the same folder of the input will be used
     - /path/to/folder a directory to save output
 - `files`
-    - ` "path/to/file1" "path/to/file2..."` : paths to files separated with spaces, make sure to put each path between `" "` to escpae special characters
+    - ` "path/to/file1::path/to/file2..."` : paths to files separated with spaces, make sure to put the pathes between `" "` to escape special characters
 - `prefix`  
     - "string" add some prefix before name filename
 - `suffix`
@@ -52,10 +57,7 @@ full example:
   - "int" one of the following choices 360,480,720,1080. This option will only downscale, if will not upscale.
     That means, if your input is 720p and you picked the 1080 parameter, it will be ignored.
     If you gave as input a list of files, only eligible files will be downscaled.
-
-- some dimensions parameter TO BE ADDED LATER
-    - null => same i.e copy
-    - width(int) height(int)
+   - There is no option to input  width(int) and height(int) at the time being.
 
 
 
@@ -74,4 +76,18 @@ If your input has multiple audio tracks /multiple sub tracks, without any of the
 
 ## Genral User FAQ
 
+### DO I need to manually install fonts?
+No, ABST handles everything for you.
+
+### Can I request a new feature? / Any plans to add X,Y features?
+We may happily consider requests depending on demands and necessary developement time, maybe yes, maybe no, no promises.
+Please do note that feedback is necessary, we don't add features for the sake of completeness unless there is demand. So if you need a feature don't expect it to be added out of the blue, please do reach out to us, and let us hear your ideas so we can gather information on requested features.
+
+### I am having trouble using your tool? The tool did not work as expected...
+Please open an issue on github or contact us by Email on dev-support<{AT}>animefn.com  (replace <{AT}> with @).
+
 ## More advanced FAQ
+
+### Any plans to support other OS? Linux?
+Maybe, Our UI is cross-os compatible, and so is avisynth (in theory), but the main problem is vsfilter and libass is very limited, specially for non-latin languages.
+VSfilter Could be used with avs2yuv, wine etc, but it is a long shot...
