@@ -32,7 +32,7 @@ jobs:
         run: |
           $PSVersionTable
           pip --version
-          echo ${env:VER} 
+          echo ${env:VER} ${env:DAY_OF_WEEK}
           echo $VER 
           echo "---------------"
           
