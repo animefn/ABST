@@ -44,3 +44,5 @@ cp -r -Force tools $test_release_path
 
 cp   "load_fonts.exe" $test_release_path
 cp   "unload_fonts.exe" $test_release_path
+
+echo "your release is ready in: $test_release_path"

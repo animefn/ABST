@@ -11,7 +11,7 @@ name: Upload Release Asset
 
 jobs:
   build-and-release:
-    name: Run PSScriptAnalyzer on Windows
+    name: Package ABST on Windows
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
