@@ -73,8 +73,9 @@ jobs:
       #     asset_content_type: application/octet-stream
       - name: Release new
         uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
         with:
+          name: Release ${{env.VER}}
+          tag_name: ${{env.VER}}
           files: ABST_${{env.VER}}.7z
           
         
