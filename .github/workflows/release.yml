@@ -22,6 +22,7 @@ jobs:
       #     Install-Module ps2exe
       #     pip install  PyQt5 pyqt5-tools  pyinstaller 
       - name: version #add env var # This would actually build your project, using zip for an example artifact
+        shell: powershell
         run: |
           cat .github/ver.env >> $GITHUB_ENV
       - name: prepare release
