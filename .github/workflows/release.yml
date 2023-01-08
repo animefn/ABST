@@ -30,7 +30,7 @@ jobs:
         run: |
           $PSVersionTable
           pip --version
-          echo $Env:$VER 
+          echo $env:$VER 
           echo $VER 
           
         
