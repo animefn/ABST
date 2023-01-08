@@ -1,4 +1,6 @@
 run-name: new release 🚀
+env:
+  DAY_OF_WEEK: Monday
 on:
   push:
     paths: 
