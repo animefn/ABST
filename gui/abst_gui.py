@@ -33,11 +33,10 @@ import subprocess
 
 
 proc=r".\abst_cli.exe"
-proc=r"D:\apps\fansub-tools\abst-dev\script.exe"
+# proc=r"D:\apps\fansub-tools\abst-dev\script.exe"
 
 GUI_VERSION=1
-CLI_VERSION=subprocess.check_output([proc, '-v'],shell=True).decode('utf-8').strip()
-CG_VERSION=f"{CLI_VERSION}g{GUI_VERSION}"
+
 
 def change_material_style(stylename=""):
     if stylename=="":
@@ -77,7 +76,8 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
         # change_material_style("dark_teal")
         # change_material_style()
 
-        
+        CLI_VERSION=subprocess.check_output([proc, '-v'],shell=True).decode('utf-8').strip()
+        CG_VERSION=f"{CLI_VERSION}g{GUI_VERSION}"
         super(AbstGUi, self).__init__(parent)
         ###
         self.conf= ABSTConfig()
@@ -153,8 +153,8 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
         
         self.pbtn_launchCLI.clicked.connect(self.launch_abstCLI)
         
-        self.pbtn_update.clicked.connect(lambda: webbrowser.open('http://www.chrome.com'))
-        self.pbtn_donate.clicked.connect(lambda: webbrowser.open('http://www.google.com'))
+        self.pbtn_update.clicked.connect(lambda: webbrowser.open('http://animefn.com'))
+        self.pbtn_donate.clicked.connect(lambda: webbrowser.open('http://animefn.com'))
 
 
         
@@ -298,7 +298,7 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
         if downscale != "original":
             args+= " -auto_resize "+(self.comboBox_downscale.currentText()).replace('p', '')
         if outpath != "":
-            args += " -output_destination " +outpath
+            args += f" -output_destination \"{outpath}\" " 
         if len(param_files_str)==0:
             return
         args += f" -f \"{param_files_str}\" " 
@@ -332,8 +332,8 @@ if __name__ == '__main__':
     parser.add_argument("-v","--version", help="show gui version", action="store_true")
     args = parser.parse_args()
     if args.version:
-        print(GUI_VERSION)
-        exit()
+        print("Gui Version:", GUI_VERSION)
+        sys.exit()
     app = QtWidgets.QApplication(sys.argv)
     
     

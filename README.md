@@ -1,16 +1,20 @@
 # Motivation
 
 ## The name
-abst -> afn batch (hard)subtitling tool
+The software is is called ABST: AFN's Batch (hard)Subtitling Tool. The name is an intended pun on the arabic word "أبسط" which means "simpler" as the software makes life much simpler when it comes to encoding hardsubs.
 
 
-## shit we want to eradicate
-- https://www.msoms-anime.net/showthread.php?t=191297
-- https://www.msoms-anime.net/showthread.php?t=191296
+## Things we want to eradicate
+- Writing your own script manually
+    - https://www.msoms-anime.net/showthread.php?t=191296
+    - Or using MeGUI...
+- manual selection for video, sub, and on top of that no bulk processing or fonts managements x264gui tmod or staxrip.
+    - https://www.msoms-anime.net/showthread.php?t=191297
+    - https://www.youtube.com/watch?v=RZ1ufcY74gg&lc=UgwuA3QCaXxq2aXKEC54AaABAg.904X11QsXAN9HDjZIOcC0E&ab_channel=Jawad
 - https://www.youtube.com/watch?v=fS-EoGYzP6k&ab_channel=ZakAlqadi
 - https://github.com/Abu3safeer/mpv-bulk-encode-ass
----> mpv libass + not batch and manual fonts extraction
-- staxrip, handbrake, writing manual scripts, usage of mpv/ffmpeg w/out the correct fonts or with libass making the subtitles appear wrongly
+---> mpv: libass + no bulk/automated processing for fonts
+- staxrip, handbrake, writing manual scripts, other solutions using of mpv/ffmpeg w/out the correct fonts or with libass making the subtitles appear wrongly
 
 
 
@@ -61,3 +65,13 @@ full example:
 - InviskaMKVExtract
 - batch file renamer
 - crc32
+
+# Limitations:
+If your input has multiple audio tracks /multiple sub tracks, without any of them having the default flag, you will get no audio/sub. 
+
+
+# FAQ
+
+## Genral User FAQ
+
+## More advanced FAQ

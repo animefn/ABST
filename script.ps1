@@ -12,7 +12,8 @@ Param(
     [parameter(ParameterSetName="Default", mandatory=$false)][string]$output_destination,
     [parameter(ParameterSetName="Default", mandatory=$false)][string]$prefix="",
     [parameter(ParameterSetName="Default", mandatory=$false)][string]$suffix="",
-    [parameter(ParameterSetName="Default", mandatory=$false)][switch]$dev,
+    [parameter(ParameterSetName="Default", mandatory=$false)][switch]$testdev,
+    [parameter(ParameterSetName="Default", mandatory=$false)][switch]$debug_verbose,
     [Parameter(ParameterSetName="Default", mandatory=$true)][string]$files_str,
 
     [parameter(ParameterSetName="info", mandatory=$false)][switch]$version,
@@ -50,7 +51,7 @@ $tools_path = $script_path + $OS_delim+"tools"
 
 
 
-[version]$my_version_counter = "0.94"
+[version]$my_version_counter = "0.971"
 
 
 
@@ -68,7 +69,7 @@ function check_for_update(){
     # get json.update msg
     # get json.update url
     } elseif ($New_ver -eq $Old_ver) {
-        Write-Output "You have latest version"
+        Write-Output "You have the latest version of ABST"
     } 
     
 }
@@ -193,7 +194,7 @@ function extract_default_sub_n_audio($file_tracksInfo, $dest, $input_video,$base
     #do same for subs
     $nb_subs = ((& $tools_path/mediainfo.exe --Output='Text;%ID% ' $input_video).split(" ")).count -1
     $is_unique_sub = (1 -eq $nb_subs)
-    echo "file has $nb_audios audios and $nb_subs internal subs "
+    if ($debug_verbose.IsPresent){ echo "file has $nb_audios audios and $nb_subs internal subs "}
     foreach ($entry in $file_tracksInfo){
         #write-output $entry.type
         
@@ -209,7 +210,7 @@ function extract_default_sub_n_audio($file_tracksInfo, $dest, $input_video,$base
         if  (($codec_type -eq "audio")  -and ( $is_default -or $is_unique_aud)){
             $internal_audio_found = $true
             $aud_codec = $ext_from_codec
-            write-output "found default audio $idx"
+            #write-output "found default audio $idx"
             if (( $audio -eq "copy") -or  (($audio -eq "non_aac_only") -and ($aud_codec -eq "aac") )  ){
                 # do not extract just copy
                 echo "audio does not need to be re-encoded non_aac_only & copy"
@@ -358,11 +359,12 @@ foreach ($input_file in $files){
      
     if ($auto_resize -ne 0){
         $resize_dimH=$auto_resize
-        if ($source_dimH -lt $resize_dimH){
+        if ($source_dimH -gt $resize_dimH){
+            $enable_resize = $true
             $resize_dimW = [math]::ceiling($resize_dimH*($source_dimW/$source_dimH))
             echo "downscaling to $resize_dimH x $resize_dimW" 
             $bt_conv = ($resize_dimH -le 480 ) -and ($source_dimH -ge 720) #it means we're converting FHD or HD to SD--> so BT conversion
-            $ff_btconv = "-vf colormatrix=bt709:bt601"
+            if ($bt_conv ) {$ff_btconv = "-vf", "colormatrix=bt709:bt601";}
 
         }else{
             echo "you did not request a downscale, you requested dimensions that are the same or bigger than input's dimension. Upscale not supported. output will have the original dimension"
@@ -374,7 +376,7 @@ foreach ($input_file in $files){
     $final_audiopath = $false
     #handle here unique audio /unique sub (without default)
     extract_default_sub_n_audio  $info_array.tracks $tmp_dir $input_video $base_input_video ([ref]$final_audiopath) ([ref]$final_subpath)
-    write-output "done with extraction of Audio and sub"
+    if ($debug_verbose.IsPresent){ write-output "Audio and subtitles handling done"}
     
     #write-output $final_subpath
     #write-output $final_audiopath
@@ -389,7 +391,7 @@ foreach ($input_file in $files){
         
         
         echo "loading fonts..."
-        if (-not ($dev.IsPresent)){
+        if (-not ($testdev.IsPresent)){
             loadfonts_fromdir $tmp_dir
         }else{
             echo "skipped fonts installation bcz dev mode"
@@ -419,7 +421,7 @@ foreach ($input_file in $files){
         Add-Content -LiteralPath "$avs_script_path" -Value "textsub(`"$final_subpath`" )" #replace with subtitles variable
     }
     
-    if ($auto_resize -ne 0){
+    if ($enable_resize){
         # if ($bt_conv){ Add-Content -LiteralPath "$avs_script_path" -Value "ColorMatrix(mode=`"Rec.709->Rec.601`", threads=0)"}
         
         Add-Content -LiteralPath "$avs_script_path" -Value "Spline36Resize($resize_dimW,$resize_dimH )"
@@ -449,16 +451,19 @@ foreach ($input_file in $files){
 
 
     if ($audio -eq "disable"){ $final_audiopath = $false }
-    $outfile = $output_destination + $OS_delim + $prefix+ $base_input_video +"_out_"+ $suffix+".mkv"
+    if ($enable_resize){$rsz="[$resize_dimH]"}
+    $outfile = $output_destination + $OS_delim + $prefix+ $base_input_video +"_out"+$rsz+"_"+ $suffix+".mkv"
     
-    echo "encoding final output for [$base_input_video]..."
+    echo "encoding final output for `"$base_input_video`"..."
     
     
     
     if ($final_audiopath -ne $false){
         #-profile:v high -level 4  removed after preset
-        #echo "$tools_path/ffmpeg.exe $ffmpeg_param -i `"$avs_script_path`" -i `"$final_audiopath`" -map 0:0  -map 1:a:0  -c:v libx264 -pix_fmt yuv420p -crf $crf -preset $preset -c:a copy  `"$outfile`""
-        & $tools_path/ffmpeg.exe $ffmpeg_param -progress pipe:1 -i "$avs_script_path" -i "$final_audiopath" -map 0:0  -map 1:a:0  -c:v libx264 -pix_fmt yuv420p $ff_btconv -crf $crf -preset $preset -c:a copy  "$outfile"   | Select-String 'frame=(\d+)' | ForEach-Object {
+        if ($testdev.IsPresent){
+            echo "$tools_path/ffmpeg.exe $ffmpeg_param -i `"$avs_script_path`" -i `"$final_audiopath`" -map 0:0  -map 1:a:0  -c:v libx264 -pix_fmt yuv420p $ff_btconv -crf $crf -preset $preset -c:a copy  `"$outfile`""
+        }
+        & $tools_path/ffmpeg.exe  $ffmpeg_param -progress pipe:1 -i "$avs_script_path" -i "$final_audiopath" -map 0:0  -map 1:a:0  -c:v libx264 -pix_fmt yuv420p $ff_btconv -crf $crf -preset $preset -c:a copy  "$outfile"   | Select-String 'frame=(\d+)' | ForEach-Object {
             $frame = [int] $_.Matches.Groups[1].Value
             
             #Write-Progress -Activity 'ffmpeg' -Status 'Converting' -PercentComplete ($frame * 100 / $maxFrames)
@@ -490,14 +495,14 @@ foreach ($input_file in $files){
     # unload fonts
     if ($nb_fonts -gt 0){
         echo "removing fonts..."
-        if (-not ($dev.IsPresent)){
+        if (-not ($testdev.IsPresent)){
             unloadfonts_fromdir $tmp_dir
         }else{
                 echo "skipped fonts uninstall bcz dev mode"
             }
     }
     #cd ..  # exit temp_dir (if there) then delete it
-    if (-not ($dev.IsPresent)){
+    if (-not ($testdev.IsPresent)){
         rmdir -Force -r -LiteralPath $tmp_dir
     }
 
