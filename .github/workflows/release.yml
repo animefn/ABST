@@ -3,6 +3,8 @@ on:
   push:
     paths: 
     - '.github/ver.env'
+  env:
+    FOO: bar
     # Sequence of patterns matched against refs/tags
 #    tags:
 #    - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
@@ -14,13 +16,13 @@ jobs:
     name: Package ABST on Windows
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Install dependencies
-        shell: powershell
-        run: |
-          Set-PSRepository PSGallery -InstallationPolicy Trusted
-          Install-Module ps2exe
-          pip install  PyQt5 pyqt5-tools  pyinstaller 
+      # - uses: actions/checkout@v3
+      # - name: Install dependencies
+      #   shell: powershell
+      #   run: |
+      #     Set-PSRepository PSGallery -InstallationPolicy Trusted
+      #     Install-Module ps2exe
+      #     pip install  PyQt5 pyqt5-tools  pyinstaller 
       - name: version #add env var # This would actually build your project, using zip for an example artifact
         run: |
           cat .github/ver.env >> $GITHUB_ENV
@@ -29,8 +31,9 @@ jobs:
         run: |
           $PSVersionTable
           pip --version
-          ./local_release.ps1 -opath ABST_${VER}
-          ls
+          echo $Env:$FOO $Env:$VER 
+          echo $FOO $VER 
+          
         
   # build:
   #   name: Upload Release Asset
