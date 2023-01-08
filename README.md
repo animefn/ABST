@@ -16,20 +16,19 @@ The software is is called ABST: AFN's Batch (hard)Subtitling Tool. The name is a
 ---> mpv: libass + no bulk/automated processing for fonts
 - staxrip, handbrake, writing manual scripts, other solutions using of mpv/ffmpeg w/out the correct fonts or with libass making the subtitles appear wrongly
 
-# Simple Usage guide (GUI).
+# Simple Usage guide (GUI)
 For most users you want to read this section only and skip the next section about CLI.
 
 
 
 # syntax and Usage (CLI) - for advanced users
 - Example
-`abst.exe -crf 22  -preset -subpriority`
 
-` .\abst.exe -crf 24 -subpriority "internal_first" -f "C:\path\input_video1.mkv" -output_destination "out2"` will out output to out2 folder
+` .\abst_cli.exe -crf 24 -subpriority "internal_first" -f "C:\path\input_video1.mkv" -output_destination "out2"` will out output to out2 folder
 
-` .\abst.exe -crf 24 -subpriority "internal_first" -f "C:\path\input_video1.mkv::C:\path\input_video2.mkv::C:\path\input_video3"` each output will be in its corresponding input's directory
+` .\abst_cli.exe -crf 24 -subpriority "internal_first" -f "C:\path\input_video1.mkv::C:\path\input_video2.mkv::C:\path\input_video3"` each output will be in its corresponding input's directory
 full example:
-` .\abst.exe -crf 24 -preset "medium" -subpriority "internal_first" -audio "all_to_aac" -f $input_video1` each output will be in its corresponding input's directory
+` .\abst_cli.exe -crf 24 -preset "medium" -subpriority "internal_first" -audio "all_to_aac" -f $input_video1` each output will be in its corresponding input's directory
 - Currently no way to set profile nor level, they are left blank in encoder command.
 - `crf` values (official ones): .. from  0 to 51 (no default)
 - `preset` values (official ones): default ultrafast
@@ -76,7 +75,10 @@ If your input has multiple audio tracks /multiple sub tracks, without any of the
 
 ## Genral User FAQ
 
-### DO I need to manually install fonts?
+### Do I need to install the software? Are admin priveleges needed?
+No, the app is fully portable, you do not need to install any thing. Just download it and extract the archive.
+
+### Do I need to manually install fonts?
 No, ABST handles everything for you.
 
 ### Can I request a new feature? / Any plans to add X,Y features?
@@ -88,6 +90,6 @@ Please open an issue on github or contact us by Email on dev-support<{AT}>animef
 
 ## More advanced FAQ
 
-### Any plans to support other OS? Linux?
-Maybe, Our UI is cross-os compatible, and so is avisynth (in theory), but the main problem is vsfilter and libass is very limited, specially for non-latin languages.
-VSfilter Could be used with avs2yuv, wine etc, but it is a long shot...
+### Any plans to support other OS? MAC? Linux?
+Maybe Linux, Our UI is cross-os compatible, and so is avisynth (in theory), but the main problem is vsfilter and libass is very limited, specially for non-latin languages. VSfilter Could be used with avs2yuv, wine etc, but it is a long shot...
+We have no plans to support MAC os for the time being,it might be considered after we add suport for linux (if ever). 
