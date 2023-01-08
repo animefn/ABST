@@ -71,6 +71,11 @@ jobs:
           asset_path: ./ABST_${{env.VER}}.7z
           asset_name: ABST_${{env.VER}}.7z
           asset_content_type: application/octet-stream
+      - name: Release new
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: ABST_${{env.VER}}.7z
           
         
   # build:
