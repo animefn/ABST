@@ -17,7 +17,7 @@ jobs:
       - name: Install dependencies
         shell: powershell
         run: |
-          cat .github/ver.env >> $GITHUB_ENV
+          cat .github/ver.env >> $env:GITHUB_ENV
       - name: prepare release
         shell: powershell
         run: |
