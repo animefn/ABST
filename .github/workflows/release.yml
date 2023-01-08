@@ -32,9 +32,11 @@ jobs:
         run: |
           $PSVersionTable
           pip --version
+          ./local_release.ps1 -opath ABST_${env:VER}
           echo ${env:VER} ${env:DAY_OF_WEEK}
           echo $VER 
           echo "---------------"
+          ls
           
         
   # build:
