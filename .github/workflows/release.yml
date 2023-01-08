@@ -37,6 +37,10 @@ jobs:
           echo $VER 
           echo "---------------"
           ls
+          echo "############################################################---------------"
+          Compress-Archive -LiteralPath ABST_${env:VER}
+          
+          ls
           
         
   # build:
