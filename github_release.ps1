@@ -7,6 +7,6 @@ $Vg= ((python .\gui\abst_gui.py  -v) -split ":")[1].replace(' ','')
 
 #"VER=${Vc}g${Vg}" >.github/ver.env
 #echo  "VER=${Vc}g${Vg}" >.github/ver.env
-#$v="VER=${Vc}g${Vg}"
+$v="VER=${Vc}g${Vg}"
 Set-Content -LiteralPath .github/ver.env -Value "VER=${Vc}g${Vg}"
-#echo $v.Length
+echo $v

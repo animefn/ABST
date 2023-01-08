@@ -51,7 +51,7 @@ $tools_path = $script_path + $OS_delim+"tools"
 
 
 
-[version]$my_version_counter = "0.97"
+[version]$my_version_counter = "0.969"
 
 
 
@@ -441,7 +441,7 @@ foreach ($input_file in $files){
 
     Add-Content -LiteralPath "$avs_script_path" -Value "ffms2(`"$input_video`",atrack=-1, fpsnum=24000, fpsden=1001,cache=false)  # convert to CFR"
     Add-Content -LiteralPath "$avs_script_path" -Value "convertbits(8, dither=0)"
-    Add-Content -LiteralPath "$avs_script_path" -Value "#ConvertToYV12()"
+    Add-Content -LiteralPath "$avs_script_path" -Value "ConvertToYV12()"
     if (-not($final_subpath -eq $false)) {
         Add-Content -LiteralPath "$avs_script_path" -Value "textsub(`"$final_subpath`" )" #replace with subtitles variable
     }
