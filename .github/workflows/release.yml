@@ -12,20 +12,8 @@ on:
 name: Upload Release Asset
 
 jobs:
-  def-ver:
-    name: add version
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: version #add env var 
-        run: |
-          cat .github/ver.env >> $GITHUB_ENV
-        
-
   build-and-release:
     name: Package ABST on Windows
-    needs: def-ver
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
@@ -35,10 +23,10 @@ jobs:
           Set-PSRepository PSGallery -InstallationPolicy Trusted
       #     Install-Module ps2exe
       #     pip install  PyQt5 pyqt5-tools  pyinstaller 
-      # - name: version #add env var # This would actually build your project, using zip for an example artifact
-      #   shell: powershell
-      #   run: |
-      #     cat .github/ver.env >> $GITHUB_ENV
+      - name: version #add env var # This would actually build your project, using zip for an example artifact
+        shell: powershell
+        run: |
+          cat .github/ver.env >> $env:GITHUB_ENV
       - name: prepare release
         shell: powershell
         run: |
