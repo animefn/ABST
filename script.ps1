@@ -188,7 +188,7 @@ function extract_default_sub_n_audio($file_tracksInfo, $dest, $input_video,$base
     }
     
     $audios =  (& $tools_path/mediainfo.exe --Output='Audio;%Duration% ' $input_video).split(" ")
-    $audio_duration=$audios[0]
+    $audio_duration=$audios[0] # this is the audio duration in ms
     $nb_audios = $audios.count -1
     $is_unique_aud = (1 -eq $nb_audios)
     #do same for subs
@@ -261,7 +261,14 @@ function extract_default_sub_n_audio($file_tracksInfo, $dest, $input_video,$base
                 
                 $ts =  [timespan]::FromMilliseconds($audio_duration)
                 $tss = ("{0:hh\:mm\:ss\.fff}" -f $ts)
-                Write-Host -NoNewLine "`r$prog out of $tss complete | $speed "
+                
+                $colonCount = ($prog -replace '[^:]').Length
+                
+                $time_ms = ([timespan] ('0:' * [math]::Max(0, (3 - $colonCount - 1)) + $prog)).TotalMilliseconds
+                $tt=[math]::Min($audio_duration,$time_ms)
+        
+                $perc=   ([math]::Round($tt*100 / $audio_duration) ) 
+                Write-Host -NoNewLine "`r[$perc%]$prog out of $tss complete | $speed ..$perc || $tt"
                 }
                 Write-Host ""
                 # & $tools_path/mkvextract.exe tracks  "$input_video"  "$idx":"$base_input_video.$aud_codec"
