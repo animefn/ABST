@@ -1,10 +1,15 @@
 # Motivation
 
+## About: 
+ABST is a tool to batch transcode videos. It is main focus is to allow bulk/batch conversion of softsubbed mkv videos to hardsubbed mp4 that are more compatible with web players. It can also do bulk processing for videos that do not have subtitles attached (mkv) but have them as an external file in the same folder with the same name.
+
+
+
 ## The name
 The software is is called ABST: AFN's Batch (hard)Subtitling Tool. The name is an intended pun on the arabic word "أبسط" which means "simpler" as the software makes life much simpler when it comes to encoding hardsubs.
 
 
-## Things we want to eradicate
+## Tedious methods we want to eradicate
 - Writing your own script manually
     - https://www.msoms-anime.net/showthread.php?t=191296
     - Or using MeGUI...
@@ -56,7 +61,7 @@ full example:
 - `suffix`
   - "string" add some suffix at the end of the name but before extension
 - `auto_resize`
-  - "int" one of the following choices 360,480,720,1080. This option will only downscale, if will not upscale.
+  - "int" one of the following choices 360,480,720,1080. This option will only downscale, it will not upscale.
     That means, if your input is 720p and you picked the 1080 parameter, it will be ignored.
     If you gave as input a list of files, only eligible files will be downscaled.
    - There is no option to input  width(int) and height(int) at the time being.
@@ -66,7 +71,8 @@ full example:
 
 
 ##  Other useful (batch) tools to use with this
-- InviskaMKVExtract
+- InviskaMKVExtract/JMKVPropedit/
+- https://github.com/yaser01/mkv-muxing-batch-gui (a great and highly recommended tool)
 - batch file renamer
 - crc32
 
@@ -78,6 +84,11 @@ If your input has multiple audio tracks /multiple sub tracks, without any of the
 
 ## Genral User FAQ
 
+### My videos have English (default) and Japanese (not default) audio, how do I get the output to have that non-default sweet Japanese audio?
+ABST can't and is not meant to do this. You need to do 2 steps.
+1- Use mkv-muxing-batch-gui [url] to keep 1 signle audio with specific language or track id and discard any other audio tracks (and preferably set that as default for consistency).
+2- Now use ASBT as usual, since the file has 1 audio only, this 1 single audio track will be used.
+
 ### Do I need to install the software? Are admin priveleges needed?
 No, the app is fully portable, you do not need to install any thing. Just download it and extract the archive.
 
@@ -88,8 +99,12 @@ No, ABST handles everything for you and will install the fonts temporarily (with
 The only options is x264 for the time being, other options might be cosnidered in the near future depeding on requests and feedbacks.
 
 ### Can I request a new feature? / Any plans to add X,Y features?
-We may happily consider requests depending on demands and necessary developement time, maybe yes, maybe no, no promises.
-Please do note that feedback is necessary, we don't add features for the sake of completeness unless there is demand. So if you need a feature don't expect it to be added out of the blue, please do reach out to us, and let us hear your ideas so we can gather information on requested features.
+Before making requests, please note that ABST is not meant as the swiss knife of video encoders, a GUI to ffmpeg, nor as some primary tool for everything.
+We have the vision that 1 problem = 1 solution, in order to keep tools simple and less confusing. Our sole aim is to provide a fool-proof tool where you drag-and-drop your MKVs and get them hardsubbed (correctly) without even understanding what happens, just by using the default values that we chose for you.  
+Adding many tabs in ABST, more fields and options etc, may make the UI much more complicated for newbies.
+
+With that in mind, We will happily consider requests depending on demands and necessary developement time, no promises though.
+Please do note that feedback is necessary, we don't add features for the sake of completeness unless there is demand. So if you need a feature don't expect it to be added out of the blue, please do reach out to us, and let us hear your ideas so we can gather information on requested features. Fixing bugs will surely have higher priority than "extra" features. Feauture requested that are sponsored/backed up by a financial donation may get higher priority.
 
 ### I am having trouble using your tool? The tool did not work as expected...
 Please open an issue on github, contact us on discord or via Email on dev-support<{AT}>animefn.com  (replace <{AT}> with @).

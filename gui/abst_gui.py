@@ -1,34 +1,22 @@
 
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import *
-from PyQt5.QtWidgets import QTableWidgetItem,QHeaderView,QFileDialog 
+from PyQt5.QtWidgets import QTableWidgetItem,QHeaderView,QFileDialog #,QWidget
 
-#from PyQt5.QtWidgets import QWidget
-from PyQt5.QtCore import QDir,QFileInfo,Qt,QProcess
-#from qt_material import apply_stylesheet
-import webbrowser
+from PyQt5.QtCore import QDir,QFileInfo,Qt,QMimeDatabase,QProcess
+
 
 from abst_conf import ABSTConfig
-import sys
 import abst_ui
+
+import sys
 import subprocess
-## remaining challenges
-# validate and accept (video files only) for drag and drop https://stackoverflow.com/questions/69627395/pyqt-drag-n-drop-hasformat
-# maybe someday dnd on widget only instead of window
+import webbrowser
+
+# Future feauture: maybe someday dnd on widget only instead of window specially if we need DND for other things
 #        https://stackoverflow.com/questions/71098302/drag-and-drop-files-to-qtablewidget
 #        https://stackoverflow.com/questions/10264040/how-to-drag-and-drop-into-a-qtablewidget-pyqt
 
-#--remining booring task
-# github actions
-# best compilation mechaism (most compact? lightest?)
-
-# save UI settings (theme,lang) [done]
-# extract styles, etc [done]
-# qt material design themes arrow issue [done]
-# launch separate process [done]
-# uniqueness of added files and compute file size[done]
-# file dialogs ADD | picker folder [done]
-# removal of selected items [done]
 
 
 
@@ -46,7 +34,7 @@ def change_material_style(stylename=""):
     QDir.addSearchPath(f'icon_{stylename}', f"themes\{stylename}\icons")
     with open(f"themes/{stylename}/{stylename}.qss", 'r') as file:
             app.setStyleSheet ( file.read())
-    # QDir.addSearchPath(f'icon_{stylename}', f"themes\{stylename}\icons")
+    # QDir.addSearchPath(f'icon_{stylename}', f"themes\{stylename}\icons") #put before loading qss and it fixes the not found issuse!
 
 
 
@@ -71,7 +59,7 @@ def sizeof_fmt(num, suffix="B"):
 
 
 class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None,title="ABST: Batch (hard)Subbing Tool "):
         
         # change_material_style("dark_teal")
         # change_material_style()
@@ -87,21 +75,14 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
         ###
         self.setupUi(self)
         self.setAcceptDrops(True)
+        self.setWindowTitle(title)
+
         
         
     
         self.param_files = set()
         
 
-        #video parameters
-        # self.param_crf = None
-        # self.param_preset =None
-        # apply_stylesheet(self, theme='dark_blue.xml')
-        # apply_stylesheet(self, theme='')
-        
-        #audio parameters
-        
-        
         # tableWidget_files #use minimumSectionSize?
         # self.tableWidget_files.horizontalHeaderItem(0).setText("file")
         # self.tableWidget_files.horizontalHeaderItem(1).setText("size")
@@ -144,7 +125,7 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
         self.comboBox_style.currentTextChanged.connect(change_style)
         self.comboBox_style.currentTextChanged.connect(self.conf.update_theme)
         self.comboBox_style.setCurrentText(theme)
-        #do the same 3 lines for language
+        #do the same 3 lines for language later
         #con.update_lang("ar")
     
         # self.checkBox_qtstyle.stateChanged.connect(change_qt_style)
@@ -183,7 +164,6 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
         self.tbtn_outdir.setEnabled(enable_bool)
 
     def select_out_dir(self):
-        # out_path = QtWidgets.QFileDialog.getOpenFileName(self, 'Hey! Select a File')
         folderpath = QtWidgets.QFileDialog.getExistingDirectory(self, 'Select output Folder')
         self.output_path.setText(folderpath)
 
@@ -248,37 +228,28 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
     
     
     def dragEnterEvent(self, event):
-        #print(event.mimeData().data())
-        if event.mimeData().hasUrls():
-        # if event.mimeData().hasFormat("video/mp4"):
+        if self.find_videos(event.mimeData()):
             event.accept()
         else:
             event.ignore()
 
     def dropEvent(self, event):
-        files = [u.toLocalFile() for u in event.mimeData().urls()]
+        #urls=event.mimeData().urls()
+        urls = self.find_videos(event.mimeData())
+        files = [u.toLocalFile() for u in urls]
         
         self.add_files_to_table(files)
-        # for f in files:
-        #     print(f)
-        #     #refactor to an add function
-        #     self.tableWidget_files.insertRow(currentRowCount)
-        #     self.tableWidget_files.setItem(currentRowCount , 0, QTableWidgetItem(f))
-
-        #     self.tableWidget_files.setItem(currentRowCount , 1, QTableWidgetItem("0000MB"))
-        #     header = self.tableWidget_files.horizontalHeader()
-        #     header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
-
-    def change_style(self,stylename):
-        # pass
-        print(stylename)
-        if stylename== "dark":
-            with open('dark_teal.qss', 'r') as file:
-                print( "LOL")
-                self.setStyleSheet ( file.read())
-                QDir.addSearchPath('icon', 'theme')
-        else:
-            self.setStyleSheet ("")
+        
+    def find_videos(self, mimedata):
+        urls = list()
+        db = QMimeDatabase()
+        for url in mimedata.urls():
+            mimetype = db.mimeTypeForUrl(url)
+            print(mimetype.name())
+            if "video" in mimetype.name():
+                urls.append(url)
+        return urls
+    
 
     def launch_abstCLI(self):
         #do the call here
@@ -340,16 +311,6 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     
     
-
-    # with open('dark_teal.qss', 'r') as file:
-    # app.style_sheet = file.read()  #pyside6
-        # app.setStyleSheet ( file.read())
-    
-
-    # Load icons
-    # QDir.add_search_path('icon', 'theme') #pyside6
-    # QDir.addSearchPath('icon', 'theme')
-
     # Create class object
     window = AbstGUi()
     #window.setStyle("fusion")

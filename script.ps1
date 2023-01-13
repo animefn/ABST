@@ -21,9 +21,6 @@ Param(
 
 )
     
-$files = $files_str -split "::"
-# echo $files.Length
-# echo $files
 
 
 $ErrorActionPreference = 'SilentlyContinue'
@@ -51,7 +48,7 @@ $tools_path = $script_path + $OS_delim+"tools"
 
 
 
-[version]$my_version_counter = "0.969"
+[version]$my_version_counter = "0.97"
 
 
 
@@ -96,18 +93,7 @@ info_group
 
 check_for_update 
 
-write-output "running from $tools_path"
-
-
-
-# Function Get-FileName($initialDirectory) {
-#     [System.Reflection.Assembly]::LoadWithPartialName("System.windows.forms") | Out-Null
-#     $OpenFileDialog = New-Object System.Windows.Forms.OpenFileDialog
-#     $OpenFileDialog.initialDirectory = $initialDirectory
-#     $OpenFileDialog.filter = "mkv (*.mkv)| *.mkv"
-#     $OpenFileDialog.ShowDialog() | Out-Null
-# }
-# $fileName = Get-FileName c:\csvs
+if  ($testdev.IsPresent){ write-output "running from $tools_path"}
 
 
 # https://powershell.org/2019/02/tips-for-writing-cross-platform-powershell-code/ 
@@ -117,7 +103,8 @@ write-output "running from $tools_path"
 
 
 ############## functions
-# Function to convert the codes in mkvextract json to file extension
+
+# Function to convert the codes in json created by mkvextract to file extension
 function mkvextract_codecs_to_ext($codec_id){
     # not an exhaustive list, just the audio and sub ones we may need
     # based on https://gist.github.com/pjobson/2603ea6c6697a761b3618f6ebcc8f063
@@ -213,11 +200,14 @@ function extract_default_sub_n_audio($file_tracksInfo, $dest, $input_video,$base
             #write-output "found default audio $idx"
             if (( $audio -eq "copy") -or  (($audio -eq "non_aac_only") -and ($aud_codec -eq "aac") )  ){
                 # do not extract just copy
-                echo "audio does not need to be re-encoded non_aac_only & copy"
+                $print_mode = ""
+                if  ($testdev.IsPresent){ $print_mode="echo non_aac_only & copy"}
+                echo "Audio does not need to be re-encoded $print_mode"
+                
                 $full_aud_path.value = $input_video
             }elseif (( $audio -eq "ac3_to_aac") -and !($aud_codec -eq "ac3") ) {
                 #we are asked to encode ac3 only, audio is not ac3 so copy
-                echo "audio is not AC-3, copying losslessly"
+                echo "Audio is not AC-3, copying losslessly"
                 $full_aud_path.value = $input_video
             }elseif ($audio -ne "disable"){
                 # transcode while you extract here
@@ -347,6 +337,7 @@ function unloadfonts_fromdir($dir){
 
 
 ############### Main program
+$files = $files_str -split "::"  #parse files
 $count_files = 0
 foreach ($input_file in $files){
     #check if input file exists, if not continue
@@ -468,7 +459,7 @@ foreach ($input_file in $files){
     
     # CREATE DESTINATION FILE name
     
-    ## if destination is not provided we use the same dest as input
+    ## if destination is not provided then we use the same dest as input
     if ($output_destination.length -eq 0){
         #then make the out dest the same as source
 
@@ -484,7 +475,7 @@ foreach ($input_file in $files){
 
     if ($audio -eq "disable"){ $final_audiopath = $false }
     if ($enable_resize){$rsz="[$resize_dimH]"}
-    $outfile = $output_destination + $OS_delim + $prefix+ $base_input_video +"_out"+$rsz+"_"+ $suffix+".mkv"
+    $outfile = $output_destination + $OS_delim + $prefix+ $base_input_video +"_out"+$rsz+"_"+ $suffix+".mp4"
     
     echo "encoding final output for `"$base_input_video`"..."
     
