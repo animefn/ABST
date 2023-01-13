@@ -35,7 +35,7 @@ jobs:
         run: |
           $PSVersionTable
           pip --version
-          ./local_release.ps1 -opath ABST_${env:VER}
+          ./local_release.ps1 -upx -opath ABST_${env:VER}
           echo ${env:VER}
           echo $VER 
           echo "---------------"

@@ -338,6 +338,7 @@ function unloadfonts_fromdir($dir){
 
 ############### Main program
 $files = $files_str -split "::"  #parse files
+$save_in_inputDir=($output_destination.length -eq 0) #or coulse use .ispresent
 $count_files = 0
 foreach ($input_file in $files){
     #check if input file exists, if not continue
@@ -466,7 +467,7 @@ foreach ($input_file in $files){
     # CREATE DESTINATION FILE name
     
     ## if destination is not provided then we use the same dest as input
-    if ($output_destination.length -eq 0){
+    if ($save_in_inputDir){
         #then make the out dest the same as source
 
         $output_destination =(get-item -LiteralPath $input_video).DirectoryName
