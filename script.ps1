@@ -150,7 +150,7 @@ function process_ext_sub($fullpath){
     $item = (get-item -LiteralPath $fullpath)
     $s_path =  $item.DirectoryName 
     $s_base =  $item.BaseName
-    $sub_extensions = @("ass","srt","ssa","sub","vtt","sup","usf","ogx","textst")
+    $sub_extensions = @("ass","srt","ssa","sub","idx","vtt","sup","usf","ogx","textst")
     foreach ($ext in $sub_extensions){
         $fullpath_sub= "$s_path" + "$OS_delim" + "$s_base"+".$ext"
         
@@ -258,7 +258,7 @@ function extract_default_sub_n_audio($file_tracksInfo, $dest, $input_video,$base
                 $tt=[math]::Min($audio_duration,$time_ms)
         
                 $perc=   ([math]::Round($tt*100 / $audio_duration) ) 
-                Write-Host -NoNewLine "`r[$perc%]$prog out of $tss complete | $speed ..$perc || $tt"
+                Write-Host -NoNewLine "`r[$perc%]$prog out of $tss complete || $speed"
                 }
                 Write-Host ""
                 # & $tools_path/mkvextract.exe tracks  "$input_video"  "$idx":"$base_input_video.$aud_codec"
@@ -441,7 +441,13 @@ foreach ($input_file in $files){
     Add-Content -LiteralPath "$avs_script_path" -Value "convertbits(8, dither=0)"
     Add-Content -LiteralPath "$avs_script_path" -Value "ConvertToYV12()"
     if (-not($final_subpath -eq $false)) {
-        Add-Content -LiteralPath "$avs_script_path" -Value "textsub(`"$final_subpath`" )" #replace with subtitles variable
+        $sub_ext = ([System.IO.Path]::GetExtension($final_subpath)).ToLower() 
+        $sub_filter="textsub"
+        if ($sub_ext -eq ".idx" -or $sub_ext -eq ".sub"){
+            $sub_filter="vobsub"
+        }
+            
+        Add-Content -LiteralPath "$avs_script_path" -Value "$sub_filter(`"$final_subpath`" )" 
     }
     
     if ($enable_resize){
@@ -454,7 +460,7 @@ foreach ($input_file in $files){
 
     
     # Last and not least, encode the episode!!!!!! Yayyy
-    # FFMPEG encode command goes here $ffmpeg_param
+    # FFMPEG encode command goes
 
     
     # CREATE DESTINATION FILE name
@@ -486,7 +492,7 @@ foreach ($input_file in $files){
         if ($testdev.IsPresent){
             echo "$tools_path/ffmpeg.exe $ffmpeg_param -i `"$avs_script_path`" -i `"$final_audiopath`" -map 0:0  -map 1:a:0  -c:v libx264 -pix_fmt yuv420p $ff_btconv -crf $crf -preset $preset -c:a copy  `"$outfile`""
         }
-        & $tools_path/ffmpeg.exe  $ffmpeg_param -progress pipe:1 -i "$avs_script_path" -i "$final_audiopath" -map 0:0  -map 1:a:0  -c:v libx264 -pix_fmt yuv420p $ff_btconv -crf $crf -preset $preset -c:a copy  "$outfile"   | Select-String 'frame=(\d+)' | ForEach-Object {
+        & $tools_path/ffmpeg.exe $ffmpeg_param  -progress pipe:1 -i "$avs_script_path" -i "$final_audiopath" -map 0:0  -map 1:a:0  -c:v libx264 -pix_fmt yuv420p $ff_btconv -crf $crf -preset $preset -c:a copy  "$outfile"   | Select-String 'frame=(\d+)' | ForEach-Object {
             $frame = [int] $_.Matches.Groups[1].Value
             
             #Write-Progress -Activity 'ffmpeg' -Status 'Converting' -PercentComplete ($frame * 100 / $maxFrames)

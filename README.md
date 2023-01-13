@@ -1,12 +1,12 @@
 # Motivation
 
 ## About: 
-ABST is a tool to batch transcode videos. It is main focus is to allow bulk/batch conversion of softsubbed mkv videos to hardsubbed mp4 that are more compatible with web players. It can also do bulk processing for videos that do not have subtitles attached (mkv) but have them as an external file in the same folder with the same name.
+ABST is a tool to batch transcode videos. Its main focus is to allow bulk/batch conversion of softsubbed mkv videos to hardsubbed mp4 that are more compatible with web players. It can also do bulk processing for videos that do not have subtitles attached inside the video container but have them as an external file in the same folder with the same name. You do not have to manually extract fonts if they are attached to the mkv.
 
 
 
 ## The name
-The software is is called ABST: AFN's Batch (hard)Subtitling Tool. The name is an intended pun on the arabic word "أبسط" which means "simpler" as the software makes life much simpler when it comes to encoding hardsubs.
+The software is called ABST: AnimeFN's Batch (hard)Subtitling Tool. The name is an intended pun on the arabic word "أبسط" which means "simpler" as the software makes life much simpler when it comes to encoding hardsubs.
 
 
 ## Tedious methods we want to eradicate
