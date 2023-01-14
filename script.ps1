@@ -181,7 +181,7 @@ function extract_default_sub_n_audio($file_tracksInfo, $dest, $input_video,$base
     #do same for subs
     $nb_subs = ((& $tools_path/mediainfo.exe --Output='Text;%ID% ' $input_video).split(" ")).count -1
     $is_unique_sub = (1 -eq $nb_subs)
-    if ($debug_verbose.IsPresent){ echo "file has $nb_audios audios and $nb_subs internal subs "}
+    if ($debug_verbose.IsPresent){ echo "  file has $nb_audios audios and $nb_subs internal subs "}
     foreach ($entry in $file_tracksInfo){
         #write-output $entry.type
         
@@ -214,7 +214,7 @@ function extract_default_sub_n_audio($file_tracksInfo, $dest, $input_video,$base
                 
                 $aud_path = "$dest/$base_input_video.$ext_from_codec"
                 $aud_path = "$dest/$base_input_video.m4a"
-                write-output "Encoding audio..."
+                write-output "  Encoding audio..."
                 # WARNING: using this without checking for failure!
                 
                 # #& $tools_path/ffmpeg.exe $ffmpeg_param -progress pipe:1 -i "$input_video" -map 0:"$idx" -acodec aac $aud_path
@@ -321,7 +321,8 @@ function loadfonts_fromdir($dir){
     # [Session]::AddFontResource($font.FullName)
     # error reporting if one font fails, warn about it
         $ffn= $font.FullName
-        echo "loading($ffn)" 
+        # echo "loading($font)" 
+        Write-Host -NoNewLine "`r  loading($font):"
         & $script_path/load_fonts.exe $font.FullName
     }
 
@@ -349,7 +350,8 @@ foreach ($input_file in $files){
         echo "$input_video does not Exist! skipping"
         continue
     }
-    echo "------------$input_video"
+    
+    Write-Host "## Processing $input_video" -ForegroundColor white -BackgroundColor blue
     $count_files += 1
     $base_input_video = ([io.fileinfo]$input_video).basename
     $input_ext = ([System.IO.Path]::GetExtension($input_video)).ToLower()
@@ -365,14 +367,14 @@ foreach ($input_file in $files){
     
 
     #create temp directory - works
-    $tp = mkdir $tmp_dir
+    # $tp = mkdir $tmp_dir
 
     ## get file info (nb of fonts/attachements)
     $info_array = & $tools_path/mkvmerge.exe  --identification-format json --identify $input_video | ConvertFrom-Json
     #$ff_info_array = & $tools_path/ffprobe.exe  -v quiet  -print_format json -show_format -show_streams $input_video | ConvertFrom-Json
-    echo $info_array.attachements
+    # echo $info_array.attachements
     $nb_fonts= $info_array.attachments.count
-    echo "$base_input_video has: $nb_fonts fonts"
+    echo "  $base_input_video has: $nb_fonts fonts"
     $maxFrames = & $tools_path/mediainfo.exe --Output="Video;%FrameCount%" $input_video
     $source_dimW,$source_dimH =  (& $tools_path/mediainfo.exe  --Inform="Video;%Width%x%Height%" $input_video).split("x")
     $ff_btconv=""
@@ -409,12 +411,12 @@ foreach ($input_file in $files){
     #if ($input_ext -eq ".mkv"){   #maybe better to do on nb fonts
     if ($nb_fonts -gt 0){
         #if ($input_ext -eq ".mkv"){
-        echo "extracting fonts..."
+        echo "  extracting fonts..."
         extract_fonts $input_video $tmp_dir $nb_fonts
         #}
         
         
-        echo "loading fonts..."
+        echo "  loading fonts..."
         if (-not ($testdev.IsPresent)){
             loadfonts_fromdir $tmp_dir
         }else{
@@ -484,7 +486,7 @@ foreach ($input_file in $files){
     if ($enable_resize){$rsz="[$resize_dimH]"}
     $outfile = $output_destination + $OS_delim + $prefix+ $base_input_video +"_out"+$rsz+"_"+ $suffix+".mp4"
     
-    echo "encoding final output for `"$base_input_video`"..."
+    echo "  encoding final output for `"$base_input_video`"..."
     
     
     
