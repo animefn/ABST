@@ -35,18 +35,15 @@ jobs:
         run: |
           $PSVersionTable
           pip --version
-          ./local_release.ps1 -upx -opath ABST_${env:VER}
+          ./local_release.ps1 -opath ABST_${env:VER}
           echo ${env:VER}
           echo $VER 
-          echo "---------------"
-          ls
           echo "############################################################---------------"
           Compress-Archive -LiteralPath ABST_${env:VER}  -DestinationPath ./ABST_${env:VER}.zip
           ls
       - name: create 7z release
         shell: powershell
         run: |
-          7z --help
           7z a -t7z -mx=9 ./ABST_${env:VER}.7z ./ABST_${env:VER}/
       # - name: Create Release
       #   id: create_release
