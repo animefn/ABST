@@ -13,7 +13,7 @@ pyuic5 .\gui\abst_ui.ui -o .\gui\abst_ui.py
 $original_path = pwd
 cd -LiteralPath gui
 #compile "abst_gui.py"
-$upx_dir="D:\apps\upx-4.0.1-win644"
+$upx_dir="D:\apps\upx-4.0.1-win64"
 if (Test-Path -LiteralPath $upx_dir -PathType Container) {
     pyinstaller.exe --onefile --windowed --upx-dir $upx_dir .\abst_gui.py -n ABST
 }else{

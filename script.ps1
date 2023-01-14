@@ -402,7 +402,7 @@ foreach ($input_file in $files){
     $final_audiopath = $false
     #handle here unique audio /unique sub (without default)
     extract_default_sub_n_audio  $info_array.tracks $tmp_dir $input_video $base_input_video ([ref]$final_audiopath) ([ref]$final_subpath)
-    if ($debug_verbose.IsPresent){ write-output "Audio and subtitles handling done"}
+    if ($debug_verbose.IsPresent){ write-output "  Audio and subtitles handling done"}
     
     #write-output $final_subpath
     #write-output $final_audiopath
@@ -535,20 +535,10 @@ foreach ($input_file in $files){
     }
     #cd ..  # exit temp_dir (if there) then delete it
     if (-not ($testdev.IsPresent)){
-        rmdir -Force -r -LiteralPath $tmp_dir
+        rmdir -Force -r -LiteralPath "\\?\$tmp_dir"
     }
 
 }
 
 echo "all tasks finished"
 echo "processed $count_files tasks"
-
-
-
-
-
-
-
-
-
-
