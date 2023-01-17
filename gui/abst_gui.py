@@ -3,7 +3,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import QTableWidgetItem,QHeaderView,QFileDialog #,QWidget
 
-from PyQt5.QtCore import QDir,QFileInfo,Qt,QMimeDatabase,QProcess
+from PyQt5.QtCore import QDir,QFileInfo,Qt,QMimeDatabase,QProcess, QSize,QTranslator,QCoreApplication
 
 
 from abst_conf import ABSTConfig
@@ -20,10 +20,12 @@ import webbrowser
 
 
 
-proc=r".\abst_cli.exe"
 # proc=r"D:\apps\fansub-tools\abst-dev\script.exe"
+proc=r".\abst_cli.exe"
+
 
 GUI_VERSION=1
+
 
 
 def change_material_style(stylename=""):
@@ -59,7 +61,7 @@ def sizeof_fmt(num, suffix="B"):
 
 
 class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
-    def __init__(self, parent=None,title="ABST: Batch (hard)Subbing Tool "):
+    def __init__(self, parent=None):
         
         # change_material_style("dark_teal")
         # change_material_style()
@@ -69,26 +71,48 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
         super(AbstGUi, self).__init__(parent)
         ###
         self.conf= ABSTConfig()
+        self.trans = QTranslator(self)
+        
+        
+
+
         theme= "modern light"
+        lang= "English"
         if self.conf.ui_theme : theme = self.conf.ui_theme 
-        change_style(theme)       
+        if self.conf.ui_lang : lang = self.conf.ui_lang
+        self.trans.load("lang_rls/arabic")
+        
+        QtWidgets.QApplication.instance().installTranslator(self.trans)
+        
+        change_style(theme)
+        
         ###
         self.setupUi(self)
+        self.change_lang(lang)
         self.setAcceptDrops(True)
-        self.setWindowTitle(title)
+        # title="ABST: Batch (hard)Subbing Tool "
+        # self.setWindowTitle(title)
 
-        
+        screenSize = QtWidgets.QApplication.desktop().availableGeometry(self)
+        w =screenSize.width() * 0.7
+        self.setFixedSize(QSize(self.width(), int(screenSize.height() * 0.8)))
         
     
         self.param_files = set()
+        ###
         
-
+        ##
+        # self.trans.load("lang_rls/french")
+        
+        # QtWidgets.QApplication.instance().installTranslator(self.trans)
+        
         # tableWidget_files #use minimumSectionSize?
         # self.tableWidget_files.horizontalHeaderItem(0).setText("file")
         # self.tableWidget_files.horizontalHeaderItem(1).setText("size")
         
         self.label_verNb.setText(CG_VERSION)
-        self.tableWidget_files.setHorizontalHeaderLabels(['filename', 'size'])
+        self.tableWidget_files.setHorizontalHeaderLabels([self.tr('filename'), self.tr('size')])
+        
         self.tableWidget_files.setTextElideMode(Qt.ElideLeft)   
         self.tableWidget_files.setWordWrap(False)
  
@@ -125,9 +149,12 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
         self.comboBox_style.currentTextChanged.connect(change_style)
         self.comboBox_style.currentTextChanged.connect(self.conf.update_theme)
         self.comboBox_style.setCurrentText(theme)
+        
         #do the same 3 lines for language later
         #con.update_lang("ar")
-    
+        self.comboBox_lang.currentTextChanged.connect(self.change_lang)
+        self.comboBox_lang.currentTextChanged.connect(self.conf.update_lang)
+        self.comboBox_lang.setCurrentText(lang)
         # self.checkBox_qtstyle.stateChanged.connect(change_qt_style)
         
         self.checkBox_outdir.stateChanged.connect(self.enable_disable_output) 
@@ -137,8 +164,44 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
         self.pbtn_update.clicked.connect(lambda: webbrowser.open('http://animefn.com'))
         self.pbtn_donate.clicked.connect(lambda: webbrowser.open('http://animefn.com'))
 
+        #self.retranslateUi()
+    def swap_direction(self,rtl=True):
+        dir=Qt.LeftToRight
+        if rtl: 
+            dir=Qt.RightToLeft
+            
+        self.setLayoutDirection(dir)
+        # self.groupBox2.setLayoutDirection(Qt.LeftToRight)
+        self.groupBox1.setLayoutDirection(dir)
+        #self.groupBox.setLayoutDirection(opposite)
+        self.checkBox_outdir.setLayoutDirection(dir)
+        for o in [ self.comboBox_tune, self.comboBox_preset,self.comboBox_downscale,self.spinBox_crf,
+                   self.comboBox_audio,self.spinBox_audio_quality,self.comboBox_subsettings ]:
+            o.setLayoutDirection(Qt.LeftToRight)
 
+    def change_lang(self,new_lang):
+        lang_dict={
+            "English": "",
+            "العربية": "arabic",
+            "Français": "french"
+        }
         
+        if new_lang=="العربية":
+            #RTL
+            self.swap_direction()
+            print("arabic")
+            #self.trans.load("lang/arabic")
+        else:
+            self.swap_direction(rtl=False)
+        
+        self.trans.load(f"lang/{lang_dict[new_lang]}")
+        
+        QtWidgets.QApplication.instance().installTranslator(self.trans)
+        self.tl_ui()
+        #
+    def tl_ui(self):
+        self.retranslateUi(self)
+        self.tableWidget_files.setHorizontalHeaderLabels([self.tr('filename'), self.tr('size')])
 
     def resizeEvent(self, event):
         print("resizing")
@@ -151,7 +214,7 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
         print(event)
         boolvalue= event=="disable" or event=="copy"
         self.spinBox_audio_quality.setEnabled( not(boolvalue)) 
-        self.spinBox_audio_quality.setEnabled(False)
+        
 
     def enable_disable_output(self,event):
         print(event)
@@ -164,7 +227,7 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
         self.tbtn_outdir.setEnabled(enable_bool)
 
     def select_out_dir(self):
-        folderpath = QtWidgets.QFileDialog.getExistingDirectory(self, 'Select output Folder')
+        folderpath = QtWidgets.QFileDialog.getExistingDirectory(self, self.tr('Select output Folder'))
         self.output_path.setText(folderpath)
 
     def remove_files(self):
@@ -298,7 +361,6 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
         # process = subprocess.Popen(str_cmd, shell=True,
         #             stdin=None, stdout=subprocess.PIPE, stderr=None, close_fds=True)
         
-
 
 if __name__ == '__main__':
     import argparse

@@ -19,7 +19,7 @@ class ABSTConfig ():
         self.config = configparser.ConfigParser()
         #if file exists
         if QFileInfo(self.configfile).exists():
-            self.config.read(self.configfile)
+            self.config.read(self.configfile,encoding="utf-8")
             if self.config.has_option(self.UI_section,"Lang"): 
                 self.ui_lang = self.config[self.UI_section]['Lang']
             else:
@@ -35,9 +35,8 @@ class ABSTConfig ():
         c = dict()
         if self.ui_theme: c["Theme"]=self.ui_theme
         if self.ui_lang: c["Lang"]=self.ui_lang
-
         self.config["UI"]=c
-        with open(self.configfile, 'w') as cfile:
+        with open(self.configfile, 'w',encoding="utf-8") as cfile:
             self.config.write(cfile)
     def update_lang(self,lang):
         self.ui_lang=lang

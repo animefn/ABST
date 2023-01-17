@@ -202,12 +202,12 @@ function extract_default_sub_n_audio($file_tracksInfo, $dest, $input_video,$base
                 # do not extract just copy
                 $print_mode = ""
                 if  ($testdev.IsPresent){ $print_mode="echo non_aac_only & copy"}
-                echo "Audio does not need to be re-encoded $print_mode"
+                echo "  Audio does not need to be re-encoded $print_mode"
                 
                 $full_aud_path.value = $input_video
             }elseif (( $audio -eq "ac3_to_aac") -and !($aud_codec -eq "ac3") ) {
                 #we are asked to encode ac3 only, audio is not ac3 so copy
-                echo "Audio is not AC-3, copying losslessly"
+                echo "  Audio is not AC-3, copying losslessly"
                 $full_aud_path.value = $input_video
             }elseif ($audio -ne "disable"){
                 # transcode while you extract here
@@ -322,7 +322,7 @@ function loadfonts_fromdir($dir){
     # error reporting if one font fails, warn about it
         $ffn= $font.FullName
         # echo "loading($font)" 
-        Write-Host -NoNewLine "`r  loading($font):"
+        Write-Host -NoNewLine "`r    loading($font):"
         & $script_path/load_fonts.exe $font.FullName
     }
 

@@ -12,6 +12,8 @@ pyuic5 .\gui\abst_ui.ui -o .\gui\abst_ui.py
 #compile python GUI to standalone exe here
 $original_path = pwd
 cd -LiteralPath gui
+
+
 #compile "abst_gui.py"
 $upx_dir="D:\apps\upx-4.0.1-win64"
 if (Test-Path -LiteralPath $upx_dir -PathType Container) {
@@ -38,6 +40,11 @@ if (Test-Path -LiteralPath $upx_dir -PathType Container) {
 cd -LiteralPath $original_path
 
 cp -r -Force gui\dist\* $test_release_path #move compiled gui to release
+
+mkdir -Force  $test_release_path\lang
+lrelease .\gui\lang_src\arabic.ts -qm .\$test_release_path\lang\arabic.qm   # generate distributable lang files
+lrelease .\gui\lang_src\french.ts -qm .\$test_release_path\lang\french.qm   # generate distributable lang files
+#could repleace these 2 lines with a loop for each file of lang_src later.
 
 # Copy tools folder to lolal release too
 cp -r -Force tools $test_release_path
