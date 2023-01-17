@@ -177,7 +177,8 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
         #self.groupBox.setLayoutDirection(opposite)
         self.checkBox_outdir.setLayoutDirection(dir)
         for o in [ self.comboBox_tune, self.comboBox_preset,self.comboBox_downscale,self.spinBox_crf,
-                   self.comboBox_audio,self.spinBox_audio_quality,self.comboBox_subsettings ]:
+                   self.comboBox_audio,self.spinBox_audio_quality,self.comboBox_subsettings,
+                   self.tableWidget_files]:
             o.setLayoutDirection(Qt.LeftToRight)
 
     def change_lang(self,new_lang):
