@@ -95,7 +95,7 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
 
         screenSize = QtWidgets.QApplication.desktop().availableGeometry(self)
         w =screenSize.width() * 0.7
-        self.setFixedSize(QSize(self.width(), int(screenSize.height() * 0.8)))
+        self.resize(QSize(self.width(), int(screenSize.height() * 0.8)))
         
     
         self.param_files = set()
