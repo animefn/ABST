@@ -10,6 +10,7 @@ Param(
     [parameter(ParameterSetName="Default", mandatory=$true)][ValidateSet("ignore","internal_first","external_first")][string]$subpriority,
     [parameter(ParameterSetName="Default", mandatory=$false)][ValidateSet(360,480,720,1080)][int]$auto_resize,
     [parameter(ParameterSetName="Default", mandatory=$false)][string]$output_destination,
+    [parameter(ParameterSetName="Default", mandatory=$false)][string]$fonts_dir,
     [parameter(ParameterSetName="Default", mandatory=$false)][string]$prefix="",
     [parameter(ParameterSetName="Default", mandatory=$false)][string]$suffix="",
     [parameter(ParameterSetName="Default", mandatory=$false)][switch]$testdev,
@@ -48,7 +49,7 @@ $tools_path = $script_path + $OS_delim+"tools"
 
 
 
-[version]$my_version_counter = "0.972"
+[version]$my_version_counter = "0.98"
 
 
 
@@ -279,9 +280,8 @@ function extract_default_sub_n_audio($file_tracksInfo, $dest, $input_video,$base
                 $sub_dest = "$dest"+ $OS_delim +"$base_input_video.$ext_from_codec"
                 # WARNING not ideal because we do not check for failure on extraction and we assign directly the path...
                 
-                #extract sub file some_file_name.ass hardcoded, what if file is srt/vtt? maybe we will be ok if textsub care not about .extention
                 #ffmpeg -i $input_video -map 0:s:0 $base_input_video".ass"
-
+                #TODO update mkvextract when next version is released for long paths support with unc format //?/
                 & $tools_path/mkvextract.exe $mkve_params tracks  "$input_video"  "$idx"":$sub_dest"
                 $full_sub_path.value = $sub_dest
             }
@@ -367,7 +367,7 @@ foreach ($input_file in $files){
     
 
     #create temp directory - works
-    # $tp = mkdir $tmp_dir
+    mkdir -Force $tmp_dir
 
     ## get file info (nb of fonts/attachements)
     $info_array = & $tools_path/mkvmerge.exe  --identification-format json --identify $input_video | ConvertFrom-Json
@@ -419,6 +419,7 @@ foreach ($input_file in $files){
         echo "  loading fonts..."
         if (-not ($testdev.IsPresent)){
             loadfonts_fromdir $tmp_dir
+            loadfonts_fromdir $fonts_dir
         }else{
             echo "skipped fonts installation bcz dev mode"
         }
@@ -493,6 +494,7 @@ foreach ($input_file in $files){
     if ($final_audiopath -ne $false){
         #-profile:v high -level 4  removed after preset
         if ($testdev.IsPresent){
+            
             echo "$tools_path/ffmpeg.exe $ffmpeg_param -i `"$avs_script_path`" -i `"$final_audiopath`" -map 0:0  -map 1:a:0  -c:v libx264 -pix_fmt yuv420p $ff_btconv -crf $crf -preset $preset -c:a copy  `"$outfile`""
         }
         & $tools_path/ffmpeg.exe $ffmpeg_param  -progress pipe:1 -i "$avs_script_path" -i "$final_audiopath" -map 0:0  -map 1:a:0  -c:v libx264 -pix_fmt yuv420p $ff_btconv -crf $crf -preset $preset -c:a copy  "$outfile"   | Select-String 'frame=(\d+)' | ForEach-Object {
@@ -529,6 +531,7 @@ foreach ($input_file in $files){
         echo "removing fonts..."
         if (-not ($testdev.IsPresent)){
             unloadfonts_fromdir $tmp_dir
+            unloadfonts_fromdir $fonts_dir
         }else{
                 echo "skipped fonts uninstall bcz dev mode"
             }

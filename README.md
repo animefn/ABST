@@ -106,6 +106,11 @@ Adding many tabs in ABST, more fields and options etc, may make the UI much more
 With that in mind, We will happily consider requests depending on demands and necessary developement time, no promises though.
 Please do note that feedback is necessary, we don't add features for the sake of completeness unless there is demand. So if you need a feature don't expect it to be added out of the blue, please do reach out to us, and let us hear your ideas so we can gather information on requested features. Fixing bugs will surely have higher priority than "extra" features. Feauture requested that are sponsored/backed up by a financial donation may get higher priority.
 
+
+### Can I offer a new language for the user interface?
+Translations of our software are welcome! Please open an issue and we will give you the source file (in English) and you can translate it to your language.
+Translation is very easy, and requires very simple computer skills no specialized/complicated knowledge needed!
+
 ### I am having trouble using your tool? The tool did not work as expected...
 Please open an issue on github, contact us on discord or via Email on dev-support<{AT}>animefn.com  (replace <{AT}> with @).
 

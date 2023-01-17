@@ -24,7 +24,7 @@ import webbrowser
 proc=r".\abst_cli.exe"
 
 
-GUI_VERSION=1
+GUI_VERSION=2
 
 
 
@@ -143,6 +143,7 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
         self.tbtn_addfiles.clicked.connect(self.add_files_via_dialog)
         self.tbtn_rmfiles.clicked.connect(self.remove_files)
         self.tbtn_outdir.clicked.connect(self.select_out_dir)
+        self.tbtn_fontsdir.clicked.connect(self.select_fonts_dir)
 
         self.comboBox_audio.currentTextChanged.connect(self.audio_setting)
         
@@ -229,7 +230,9 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
     def select_out_dir(self):
         folderpath = QtWidgets.QFileDialog.getExistingDirectory(self, self.tr('Select output Folder'))
         self.output_path.setText(folderpath)
-
+    def select_fonts_dir(self):
+        folderpath = QtWidgets.QFileDialog.getExistingDirectory(self, self.tr('Select fonts Folder'))
+        self.fontsdir_path.setText(folderpath)
     def remove_files(self):
         s2=self.tableWidget_files.selectedIndexes()
         print(f"files before {self.param_files}")
@@ -320,6 +323,7 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
 
         args=""
         outpath=self.output_path.text()
+        fonts_dir=self.fontsdir_path.text()
         downscale=self.comboBox_downscale.currentText()
         param_files_str="::".join(f"{str(e)}" for e in self.param_files)
         args+=f"-crf {float(self.spinBox_crf.value())}"
@@ -336,9 +340,11 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
             
         if outpath != "":
             args += f" -output_destination \"{outpath}\" " 
+        if fonts_dir != "":
+            args += f" -fonts_dir \"{fonts_dir}\" " 
         if len(param_files_str)==0:
             return
-        args += f" -f \"{param_files_str}\" " 
+        args += f" -fi \"{param_files_str}\" " 
         
         print(f"gather params and launch CLI output: {outpath}  files {param_files_str} {args}" )
         
