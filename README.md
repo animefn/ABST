@@ -77,7 +77,8 @@ full example:
 - crc32
 
 # Limitations:
-If your input has multiple audio tracks /multiple sub tracks, without any of them having the default flag, you will get no audio/sub. 
+- If your input has multiple audio tracks /multiple sub tracks, without any of them having the default flag, you will get no audio/sub.  (see faq for a workaround)
+
 
 
 # FAQ

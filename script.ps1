@@ -281,7 +281,7 @@ function extract_default_sub_n_audio($file_tracksInfo, $dest, $input_video,$base
                 # WARNING not ideal because we do not check for failure on extraction and we assign directly the path...
                 
                 #ffmpeg -i $input_video -map 0:s:0 $base_input_video".ass"
-                #TODO update mkvextract when next version is released for long paths support with unc format //?/
+                #TODO update mkvextract when next version is released for long paths support with unc format \\?\
                 & $tools_path/mkvextract.exe $mkve_params tracks  "$input_video"  "$idx"":$sub_dest"
                 $full_sub_path.value = $sub_dest
             }
@@ -367,7 +367,7 @@ foreach ($input_file in $files){
     
 
     #create temp directory - works
-    mkdir -Force $tmp_dir
+    mkdir $tmp_dir | Out-Null
 
     ## get file info (nb of fonts/attachements)
     $info_array = & $tools_path/mkvmerge.exe  --identification-format json --identify $input_video | ConvertFrom-Json
@@ -440,8 +440,13 @@ foreach ($input_file in $files){
 
     # }
     
-
-    Add-Content -LiteralPath "$avs_script_path" -Value "ffms2(`"$input_video`",atrack=-1, fpsnum=24000, fpsden=1001,cache=false)  # convert to CFR"
+    
+    # if ($final_audiopath -eq $false){
+    #     Add-Content -LiteralPath "$avs_script_path" -Value "ffms2(`"$input_video`", fpsnum=24000, fpsden=1001,cache=false)  # convert to CFR"    
+    # }else{
+    #     Add-Content -LiteralPath "$avs_script_path" -Value "ffms2(`"$input_video`",atrack=-1, fpsnum=24000, fpsden=1001,cache=false)  # convert to CFR"
+    # }
+    Add-Content -LiteralPath "$avs_script_path" -Value "ffms2(`"$input_video`", fpsnum=24000, fpsden=1001,cache=false)  # convert to CFR"    
     Add-Content -LiteralPath "$avs_script_path" -Value "convertbits(8, dither=0)"
     Add-Content -LiteralPath "$avs_script_path" -Value "ConvertToYV12()"
     if (-not($final_subpath -eq $false)) {
@@ -501,11 +506,17 @@ foreach ($input_file in $files){
             $frame = [int] $_.Matches.Groups[1].Value
             
             #Write-Progress -Activity 'ffmpeg' -Status 'Converting' -PercentComplete ($frame * 100 / $maxFrames)
-            $a=($frame * 100 / $maxFrames)
-            $a=[math]::Round($a)
-            $str = "#"*$a
-            $str2 = "-"*(100-$a)
-            Write-Host -NoNewLine "`r$a% complete | $str $str2|"
+            if ([int] $maxFrames -eq 0){
+                Write-Host -NoNewLine "`r  >>can't report progress: $frame frames completed"
+            }
+            else{
+                $a=($frame * 100 / $maxFrames)
+                $a=[math]::Round($a)
+                $str = "#"*$a
+                $str2 = "-"*(100-$a)
+                Write-Host -NoNewLine "`r$a% complete | $str $str2|"
+            }
+            
         }
 
     }else{
@@ -516,11 +527,18 @@ foreach ($input_file in $files){
             $frame = [int] $_.Matches.Groups[1].Value
             
             #Write-Progress -Activity 'ffmpeg' -Status 'Converting' -PercentComplete ($frame * 100 / $maxFrames)
-            $a=($frame * 100 / $maxFrames)
-            $a=[math]::Round($a)
-            $str = "#"*$a
-            $str2 = "-"*(100-$a)
-            Write-Host -NoNewLine "`r$a% complete | $str $str2|"
+            # echo "$frame out of $maxFrames"
+            if ([int] $maxFrames -eq 0){
+                Write-Host -NoNewLine "`r  >>can't report progress: $frame frames completed"
+            }
+            else{
+                $a=($frame * 100 / $maxFrames)
+                $a=[math]::Round($a)
+                $str = "#"*$a
+                $str2 = "-"*(100-$a)
+                Write-Host -NoNewLine "`r$a% complete | $str $str2|"
+            }
+            
         }
     } 
     ## 
