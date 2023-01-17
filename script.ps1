@@ -542,6 +542,11 @@ foreach ($input_file in $files){
         }
     } 
     ## 
+    if ([int] $maxFrames -ne 0){
+        $str = "#"*100
+        Write-Host -NoNewLine "`r100% complete | $str |"
+    }
+    
     Write-Host ""
     #unload fonts and clear temp directory
     # unload fonts
