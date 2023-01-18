@@ -101,17 +101,17 @@
         <widget class="QComboBox" name="comboBox_lang">
          <item>
           <property name="text">
-           <string>English</string>
+           <string notr="true">English</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>العربية</string>
+           <string notr="true">العربية</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>Français</string>
+           <string notr="true">Français</string>
           </property>
          </item>
         </widget>

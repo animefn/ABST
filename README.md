@@ -36,6 +36,7 @@ full example:
 ` .\abst_cli.exe -crf 24 -preset "medium" -subpriority "internal_first" -audio "all_to_aac" -f $input_video1` each output will be in its corresponding input's directory
 - Currently no way to set profile nor level, they are left blank in encoder command.
 - `crf` values (official ones): .. from  0 to 51 (no default), prefer values around 19-25 for a secondary hardsubs encode for distribution. Lower means higher quality at the expense of a bigger filesize.
+more on this https://slhck.info/video/2017/02/24/crf-guide.html
 - `preset` values (official ones): default ultrafast
 - `tune` (official x264 ones) animation by default
 - `subpriority` : 
@@ -71,10 +72,11 @@ full example:
 
 
 ##  Other useful (batch) tools to use with this
-- InviskaMKVExtract/JMKVPropedit/
+- InviskaMKVExtract/JMKVPropedit (use https://github.com/BrunoReX/jmkvpropedit  doom9 discussion https://forum.doom9.org/showthread.php?t=163753)
 - https://github.com/yaser01/mkv-muxing-batch-gui (a great and highly recommended tool)
 - batch file renamer
 - crc32
+- in some cases that ABST does not cover, you may want to use https://sourceforge.net/projects/ffmpeg-batch/
 
 # Limitations:
 - If your input has multiple audio tracks /multiple sub tracks, without any of them having the default flag, you will get no audio/sub.  (see faq for a workaround)
