@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="2.0" language="ar" sourcelanguage="">
+<!DOCTYPE TS>
+<TS version="2.1" language="ar">
 <context>
     <name>AbstGUi</name>
     <message>
@@ -38,13 +39,14 @@
     <message>
         <location filename="../abst_ui.py" line="243"/>
         <source>Update</source>
-        <translation type="unfinished">تحديث</translation>
+        <translation type="unfinished">تحديث البرنامج
+</translation>
     </message>
     <message>
         <location filename="../abst_ui.py" line="244"/>
         <source>Donate 
  to support us</source>
-        <translation type="unfinished"></translation>
+        <translation>تبرع لدعمنا</translation>
     </message>
     <message>
         <location filename="../abst_ui.py" line="246"/>
@@ -134,7 +136,7 @@
     <message>
         <location filename="../abst_ui.py" line="265"/>
         <source>Encoding speed (slower means smaller filesize)</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">السرعات الأبطأ تعطي حجم أصغر للملف</translation>
     </message>
     <message>
         <location filename="../abst_ui.py" line="266"/>
@@ -164,7 +166,8 @@
     <message>
         <location filename="../abst_ui.py" line="271"/>
         <source>crf controls video quality. Value between 0 (best quality with bigger size) and 51 (worst quality with small size).  Stick to values between 18-25.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">
+هذه القيمة تكون بين0 و 51 وتتحكم بجودة الفيديو، القيم الأعلى تعني حجم أصغر ولكن جودة أسوء، ينصح بتركها بين 18 و25.</translation>
     </message>
     <message>
         <location filename="../abst_ui.py" line="272"/>
@@ -174,7 +177,8 @@
     <message>
         <location filename="../abst_ui.py" line="273"/>
         <source>Downscale to</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>تصغير الأبعاد</translatorcomment>
+        <translation></translation>
     </message>
     <message>
         <location filename="../abst_ui.py" line="274"/>
@@ -326,12 +330,12 @@
         <source>ABST: Batch (hard)Subbing Tool</source>
         <translation type="unfinished"></translation>
     </message>
-    <message encoding="UTF-8">
+    <message>
         <location filename="../abst_ui.py" line="248"/>
         <source>العربية</source>
         <translation type="unfinished"></translation>
     </message>
-    <message encoding="UTF-8">
+    <message>
         <location filename="../abst_ui.py" line="249"/>
         <source>Français</source>
         <translation type="unfinished"></translation>
@@ -339,12 +343,12 @@
     <message>
         <location filename="../abst_ui.py" line="299"/>
         <source>Fonts in this folder will be will be loaded in addition to any fonts muxed inside mkv files</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">اختر هنا مجلد لخطوط إضافية. هذه الخطوط  لا حاجة لهذا الخيار إذا كانت الخطوط مرفقة بالmkv أو منصبة بنظامك.</translation>
     </message>
     <message>
         <location filename="../abst_ui.py" line="300"/>
         <source>Additional Fonts</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">خطوط إضافية</translation>
     </message>
     <message>
         <location filename="../abst_ui.py" line="301"/>

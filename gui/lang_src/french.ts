@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="2.0" language="fr" sourcelanguage="">
+<!DOCTYPE TS>
+<TS version="2.1" language="fr">
 <context>
     <name>AbstGUi</name>
     <message>
@@ -44,7 +45,8 @@
         <location filename="../abst_ui.py" line="244"/>
         <source>Donate 
  to support us</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Faire un don
+</translation>
     </message>
     <message>
         <location filename="../abst_ui.py" line="246"/>
@@ -164,7 +166,7 @@
     <message>
         <location filename="../abst_ui.py" line="271"/>
         <source>crf controls video quality. Value between 0 (best quality with bigger size) and 51 (worst quality with small size).  Stick to values between 18-25.</source>
-        <translation type="unfinished"></translation>
+        <translation>Cette valeur doit être entre 0(meilleure) et 51(pire) et elle permet de controller la qualité de la sortie. Il est conseillé de choisir des valeurs entre 18 et 25</translation>
     </message>
     <message>
         <location filename="../abst_ui.py" line="272"/>
@@ -174,7 +176,8 @@
     <message>
         <location filename="../abst_ui.py" line="273"/>
         <source>Downscale to</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">réduire les dimensions
+</translation>
     </message>
     <message>
         <location filename="../abst_ui.py" line="274"/>
@@ -326,12 +329,12 @@
         <source>ABST: Batch (hard)Subbing Tool</source>
         <translation type="unfinished"></translation>
     </message>
-    <message encoding="UTF-8">
+    <message>
         <location filename="../abst_ui.py" line="248"/>
         <source>العربية</source>
         <translation type="unfinished"></translation>
     </message>
-    <message encoding="UTF-8">
+    <message>
         <location filename="../abst_ui.py" line="249"/>
         <source>Français</source>
         <translation type="unfinished"></translation>
@@ -339,12 +342,12 @@
     <message>
         <location filename="../abst_ui.py" line="299"/>
         <source>Fonts in this folder will be will be loaded in addition to any fonts muxed inside mkv files</source>
-        <translation type="unfinished"></translation>
+        <translation>Des polices à ajouter, en plus de celles qui sont déjà incluses dans les .mkv</translation>
     </message>
     <message>
         <location filename="../abst_ui.py" line="300"/>
         <source>Additional Fonts</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Polices supplémentaires</translation>
     </message>
     <message>
         <location filename="../abst_ui.py" line="301"/>
