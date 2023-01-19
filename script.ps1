@@ -262,7 +262,6 @@ function extract_default_sub_n_audio($file_tracksInfo, $dest, $input_video,$base
                 Write-Host -NoNewLine "`r[$perc%]$prog out of $tss complete || $speed"
                 }
                 Write-Host ""
-                # & $tools_path/mkvextract.exe tracks  "$input_video"  "$idx":"$base_input_video.$aud_codec"
                 $full_aud_path.value =$aud_path
                 
             }
@@ -359,11 +358,17 @@ foreach ($input_file in $files){
     
     
     #$tmp_dir = "tmp_location"+"abst"somerandom  hash-name to avoid collision
-    $tmp_dir = "$tmp_location"+ $OS_delim +"$base_input_video"
+    $t_biv=$base_input_video
+    if ($base_input_video.length -gt 100){
+        $rand_hash=-join (((48..57)+(65..90)+(97..122)) * 80 |Get-Random -Count 12 |%{[char]$_})
+        $t_biv=$base_input_video.SubString(0,90)+$rand_hash
+    }
+    $tmp_dir = "$tmp_location"+ $OS_delim +"$t_biv"
     
     
 
-    $avs_script_path = "$tmp_dir"+$OS_delim+"${base_input_video}_script.avs"
+    # $avs_script_path = "$tmp_dir"+$OS_delim+"${base_input_video}_script.avs"
+    $avs_script_path = "\\?\"+"$tmp_dir"+$OS_delim+"${base_input_video}_script.avs"
     
 
     #create temp directory - works
