@@ -49,7 +49,7 @@ $tools_path = $script_path + $OS_delim+"tools"
 
 
 
-[version]$my_version_counter = "0.98"
+[version]$my_version_counter = "0.982"
 
 
 
