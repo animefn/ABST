@@ -390,7 +390,11 @@ foreach ($input_file in $files){
      
     if ($auto_resize -ne 0){
         $resize_dimH=$auto_resize
-        if ($source_dimH -gt $resize_dimH){
+        if ($testdev.IsPresent){
+            echo "you req. to change $source_dimH p to $resize_dimH ($some_bool)"
+        }
+        
+        if ([int]$source_dimH -gt $resize_dimH){
             $enable_resize = $true
             $resize_dimW = [math]::ceiling($resize_dimH*($source_dimW/$source_dimH))
             echo "downscaling to $resize_dimH x $resize_dimW" 
