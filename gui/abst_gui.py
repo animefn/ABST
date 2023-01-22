@@ -22,7 +22,7 @@ import webbrowser
 
 
 proc=r".\abst_cli.exe"
-proc=r"D:\apps\fansub-tools\abst-dev\script.exe"
+# proc=r"D:\apps\fansub-tools\abst-dev\script.exe"
 
 GUI_VERSION=3
 
