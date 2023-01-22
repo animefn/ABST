@@ -22,7 +22,7 @@ import webbrowser
 
 
 proc=r".\abst_cli.exe"
-# proc=r"D:\apps\fansub-tools\abst-dev\script.exe"
+proc=r"D:\apps\fansub-tools\abst-dev\script.exe"
 
 GUI_VERSION=3
 
@@ -172,12 +172,16 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
         #self.retranslateUi()
     def swap_direction(self,rtl=True):
         dir=Qt.LeftToRight
+        al = Qt.AlignLeft
         if rtl: 
             dir=Qt.RightToLeft
-            
+            al = Qt.AlignRight
+        # self.label_instructions.setLayoutDirection(Qt.RightToLeft)
         self.setLayoutDirection(dir)
         # self.groupBox2.setLayoutDirection(Qt.LeftToRight)
         self.groupBox1.setLayoutDirection(dir)
+        self.label_instructions.setLayoutDirection(dir)
+        self.label_instructions.setAlignment(al)
         #self.groupBox.setLayoutDirection(opposite)
         self.checkBox_outdir.setLayoutDirection(dir)
         for o in [ self.comboBox_tune, self.comboBox_preset,self.comboBox_downscale,self.spinBox_crf,
@@ -196,7 +200,6 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
             #RTL
             self.swap_direction()
             print("arabic")
-            #self.trans.load("lang/arabic")
         else:
             self.swap_direction(rtl=False)
         

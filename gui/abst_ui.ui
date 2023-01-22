@@ -95,9 +95,18 @@
         </spacer>
        </item>
        <item>
-        <widget class="QLabel" name="label">
+        <widget class="QLabel" name="label_instructions">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="layoutDirection">
+          <enum>Qt::LeftToRight</enum>
+         </property>
          <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;Instructions:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;- Drag and Drop you .mkv files&lt;/p&gt;&lt;p&gt;- No need to install fonts &lt;br/&gt;if they are attached in the mkv&lt;br/&gt;or extract subtitles ABST will &lt;br/&gt;read them automatically&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;Instructions:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;- Drag and Drop you .mkv files&lt;/p&gt;&lt;p&gt;- No need to install fonts if they are attached in the mkv nor extract subtitles!&lt;br/&gt;ABST will read them automatically&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -519,6 +528,9 @@
         <property name="enabled">
          <bool>false</bool>
         </property>
+        <property name="toolTip">
+         <string>if empty each output will be saved next its input</string>
+        </property>
         <property name="placeholderText">
          <string>if empty each output will be saved next its input</string>
         </property>
@@ -572,6 +584,9 @@
         <property name="enabled">
          <bool>true</bool>
         </property>
+        <property name="toolTip">
+         <string>select fonts directory</string>
+        </property>
         <property name="text">
          <string>...</string>
         </property>
@@ -599,6 +614,9 @@
       </item>
       <item>
        <widget class="QToolButton" name="tbtn_addfiles">
+        <property name="toolTip">
+         <string>Add video files</string>
+        </property>
         <property name="text">
          <string>add</string>
         </property>
@@ -606,6 +624,9 @@
       </item>
       <item>
        <widget class="QToolButton" name="tbtn_rmfiles">
+        <property name="toolTip">
+         <string>Remove selected items</string>
+        </property>
         <property name="text">
          <string>remove</string>
         </property>
