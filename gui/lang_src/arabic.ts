@@ -26,7 +26,7 @@
     <message>
         <location filename="../abst_gui.py" line="113"/>
         <source>latest</source>
-        <translation type="unfinished">أي أحدث نسخة</translation>
+        <translation type="unfinished">لديك أحدث نسخة</translation>
     </message>
     <message>
         <location filename="../abst_gui.py" line="115"/>
