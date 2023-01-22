@@ -62,7 +62,7 @@
        <item>
         <widget class="QPushButton" name="pbtn_update">
          <property name="text">
-          <string>Update</string>
+          <string>Get latest version</string>
          </property>
         </widget>
        </item>
@@ -75,6 +75,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QPushButton" name="pbtn_contact">
+         <property name="text">
+          <string>Contact us</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -83,6 +90,32 @@
           <size>
            <width>128</width>
            <height>398</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;Instructions:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;- Drag and Drop you .mkv files&lt;/p&gt;&lt;p&gt;- No need to install fonts &lt;br/&gt;if they are attached in the mkv&lt;br/&gt;or extract subtitles ABST will &lt;br/&gt;read them automatically&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_3">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
           </size>
          </property>
         </spacer>

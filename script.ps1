@@ -49,7 +49,7 @@ $tools_path = $script_path + $OS_delim+"tools"
 
 
 
-[version]$my_version_counter = "0.982"
+[float]$my_version_counter = "0.99"
 
 
 
@@ -57,17 +57,17 @@ function check_for_update(){
     # get json from ANIMEFN in variable
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
     $animefn_json = Invoke-WebRequest 'https://animefn.com/abst.json' | ConvertFrom-Json
-    [version]$latest_version = $animefn_json."latest_version" #get latest version number from some json web format
+    [float]$latest_version = $animefn_json."latest_version" #get latest version number from some json web format
+    $latest_gui = $animefn_json."latest_gui"
     $update_url = $animefn_json."release_url"
-
     
     if ($latest_version -gt $my_version_counter) {
     # $update_url
-    Write-Output "A newer version is available. You need to get the latest version from our github repo"
+    Write-Output ("A newer version is available. You need to get the latest version [$latest_version"+"g"+"$latest_gui] from our github repo: $update_url")
     # get json.update msg
     # get json.update url
     } elseif ($New_ver -eq $Old_ver) {
-        Write-Output "You have the latest version of ABST"
+        Write-Output ("You have the latest version $my_version_counter of ABST CLI: Lastest known is [$latest_version"+"g"+"$latest_gui]")
     } 
     
 }
@@ -338,6 +338,7 @@ function unloadfonts_fromdir($dir){
 
 ############### Main program
 $files = $files_str -split "::"  #parse files
+$nb_files= $files.Length
 $save_in_inputDir=($output_destination.length -eq 0) #or coulse use .ispresent
 $count_files = 0
 foreach ($input_file in $files){
@@ -350,8 +351,10 @@ foreach ($input_file in $files){
         continue
     }
     
-    Write-Host "## Processing $input_video" -ForegroundColor white -BackgroundColor blue
     $count_files += 1
+    Write-Host "## [$count_files/$nb_files] Processing $input_video" -ForegroundColor white -BackgroundColor blue
+    $host.UI.RawUI.WindowTitle = "[$count_files/$nb_files] $input_file - ABST by AnimeFN"
+    
     $base_input_video = ([io.fileinfo]$input_video).basename
     $input_ext = ([System.IO.Path]::GetExtension($input_video)).ToLower()
     
@@ -397,7 +400,7 @@ foreach ($input_file in $files){
         if ([int]$source_dimH -gt $resize_dimH){
             $enable_resize = $true
             $resize_dimW = [math]::ceiling($resize_dimH*($source_dimW/$source_dimH))
-            echo "downscaling to $resize_dimH x $resize_dimW" 
+            echo "  downscaling to $resize_dimH x $resize_dimW" 
             $bt_conv = ($resize_dimH -le 480 ) -and ($source_dimH -ge 720) #it means we're converting FHD or HD to SD--> so BT conversion
             if ($bt_conv ) {$ff_btconv = "-vf", "colormatrix=bt709:bt601";}
 

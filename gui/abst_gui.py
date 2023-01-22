@@ -20,11 +20,11 @@ import webbrowser
 
 
 
-# proc=r"D:\apps\fansub-tools\abst-dev\script.exe"
+
 proc=r".\abst_cli.exe"
+# proc=r"D:\apps\fansub-tools\abst-dev\script.exe"
 
-
-GUI_VERSION=2
+GUI_VERSION=3
 
 
 
@@ -68,6 +68,8 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
 
         CLI_VERSION=subprocess.check_output([proc, '-v'],shell=True).decode('utf-8').strip()
         CG_VERSION=f"{CLI_VERSION}g{GUI_VERSION}"
+        CLI_latest,CG_latest=subprocess.check_output([proc, '-check_update'],shell=True).decode('utf-8').strip().split("[")[1].split("]")[0].split("g")
+        
         super(AbstGUi, self).__init__(parent)
         ###
         self.conf= ABSTConfig()
@@ -109,8 +111,10 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
         # tableWidget_files #use minimumSectionSize?
         # self.tableWidget_files.horizontalHeaderItem(0).setText("file")
         # self.tableWidget_files.horizontalHeaderItem(1).setText("size")
-        
-        self.label_verNb.setText(CG_VERSION)
+        ver_status='<br><span style=" color:#5AAB61;"><b>'+self.tr("latest")+'</b></span>'
+        if CLI_latest>CLI_VERSION or CG_latest>CG_VERSION:
+            ver_status='<br><span style=" color:#ff0000;"><b>'+self.tr("Please update")+'</b></span>'
+        self.label_verNb.setText(CG_VERSION+ver_status)
         self.tableWidget_files.setHorizontalHeaderLabels([self.tr('filename'), self.tr('size')])
         
         self.tableWidget_files.setTextElideMode(Qt.ElideLeft)   
@@ -162,7 +166,7 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
         
         self.pbtn_launchCLI.clicked.connect(self.launch_abstCLI)
         
-        self.pbtn_update.clicked.connect(lambda: webbrowser.open('http://animefn.com'))
+        self.pbtn_update.clicked.connect(lambda: webbrowser.open('https://github.com/animefn/ABST/releases/latest'))
         self.pbtn_donate.clicked.connect(lambda: webbrowser.open('http://animefn.com'))
 
         #self.retranslateUi()
