@@ -1,35 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.1" language="ar">
+<!DOCTYPE TS><TS version="2.0" language="ar" sourcelanguage="">
 <context>
     <name>AbstGUi</name>
     <message>
-        <location filename="../abst_gui.py" line="212"/>
+        <location filename="../abst_gui.py" line="211"/>
         <source>filename</source>
         <translation type="unfinished">اسم الملف</translation>
     </message>
     <message>
-        <location filename="../abst_gui.py" line="212"/>
+        <location filename="../abst_gui.py" line="211"/>
         <source>size</source>
         <translation type="unfinished">الحجم</translation>
     </message>
     <message>
-        <location filename="../abst_gui.py" line="238"/>
+        <location filename="../abst_gui.py" line="237"/>
         <source>Select output Folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../abst_gui.py" line="241"/>
+        <location filename="../abst_gui.py" line="240"/>
         <source>Select fonts Folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../abst_gui.py" line="113"/>
+        <location filename="../abst_gui.py" line="112"/>
         <source>latest</source>
         <translation type="unfinished">لديك أحدث نسخة</translation>
     </message>
     <message>
-        <location filename="../abst_gui.py" line="115"/>
+        <location filename="../abst_gui.py" line="114"/>
         <source>Please update</source>
         <translation type="unfinished">يرجى التحديث</translation>
     </message>
@@ -45,12 +44,6 @@
         <location filename="../abst_ui.py" line="261"/>
         <source>You are using version:</source>
         <translation>أنت على الإصدار:</translation>
-    </message>
-    <message>
-        <location filename="../abst_ui.py" line="243"/>
-        <source>Update</source>
-        <translation type="obsolete">تحديث البرنامج
-</translation>
     </message>
     <message>
         <location filename="../abst_ui.py" line="263"/>
@@ -304,27 +297,27 @@
         <translation>إذا تركته فارغًا، سيتم حفظ الإنتاج بنفس مجلد الملف المصدر</translation>
     </message>
     <message>
-        <location filename="../abst_ui.py" line="321"/>
+        <location filename="../abst_ui.py" line="322"/>
         <source>...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../abst_ui.py" line="322"/>
+        <location filename="../abst_ui.py" line="323"/>
         <source>Drag and drop files below or use add button</source>
         <translation type="unfinished">قم بإدراج ملفاتك هنا</translation>
     </message>
     <message>
-        <location filename="../abst_ui.py" line="323"/>
+        <location filename="../abst_ui.py" line="325"/>
         <source>add</source>
         <translation type="unfinished">أضِف</translation>
     </message>
     <message>
-        <location filename="../abst_ui.py" line="324"/>
+        <location filename="../abst_ui.py" line="327"/>
         <source>remove</source>
         <translation type="unfinished">حذف</translation>
     </message>
     <message>
-        <location filename="../abst_ui.py" line="326"/>
+        <location filename="../abst_ui.py" line="329"/>
         <source>Start encoding</source>
         <translation type="unfinished">ابدأ الإنتاج</translation>
     </message>
@@ -359,14 +352,24 @@
         <translation type="unfinished">التواصل معنا</translation>
     </message>
     <message>
-        <location filename="../abst_ui.py" line="265"/>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;Instructions:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;- Drag and Drop you .mkv files&lt;/p&gt;&lt;p&gt;- No need to install fonts  if they are attached in the mkv or extract subtitles!&lt;br/&gt;ABST will read them automatically&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="obsolete">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;:إرشادات&lt;/span&gt;&lt;/p&gt;&lt;p&gt;قم بسحب وإدراج ملفاتك هنا-&lt;/p&gt;&lt;p&gt;لا داعي لاستخراج الخطوط أو ملف الترجمة يدويًا- &lt;br/&gt;برنامج أبسط سيتهم بالأمر تلقائيًا&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
         <location filename="../abst_ui.py" line="266"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;Instructions:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;- Drag and Drop you .mkv files&lt;/p&gt;&lt;p&gt;- No need to install fonts if they are attached in the mkv nor extract subtitles!&lt;br/&gt;ABST will read them automatically&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;:إرشادات&lt;/span&gt;&lt;/p&gt;&lt;p&gt; قم بسحب وإدراج ملفاتك بالبرنامج &lt;/p&gt;&lt;p&gt; لا داعي لاستخراج الخطوط أو ملف الترجمة يدويًا&lt;br/&gt;برنامج أبسط سيهتم بالأمر تلقائيًا&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <location filename="../abst_ui.py" line="321"/>
+        <source>select fonts directory</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../abst_ui.py" line="324"/>
+        <source>Add video files</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../abst_ui.py" line="326"/>
+        <source>Remove selected items</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>

@@ -24,7 +24,7 @@ import webbrowser
 proc=r".\abst_cli.exe"
 # proc=r"D:\apps\fansub-tools\abst-dev\script.exe"
 
-GUI_VERSION=3
+GUI_VERSION=4
 
 
 
@@ -65,10 +65,10 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
         
         # change_material_style("dark_teal")
         # change_material_style()
-
-        CLI_VERSION=subprocess.check_output([proc, '-v'],shell=True).decode('utf-8').strip()
-        CG_VERSION=f"{CLI_VERSION}g{GUI_VERSION}"
-        CLI_latest,GUI_latest=subprocess.check_output([proc, '-check_update'],shell=True).decode('utf-8').strip().split("[")[1].split("]")[0].split("g")
+        self.CLI_VERSION=subprocess.check_output([proc, '-v'],shell=True).decode('utf-8').strip()
+        self.CG_VERSION=f"{self.CLI_VERSION}g{GUI_VERSION}"
+        self.CLI_latest,self.GUI_latest=subprocess.check_output([proc, '-check_update'],shell=True).decode('utf-8').strip().split("[")[1].split("]")[0].split("g")
+        
         super(AbstGUi, self).__init__(parent)
         ###
         self.conf= ABSTConfig()
@@ -81,7 +81,6 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
         lang= "English"
         if self.conf.ui_theme : theme = self.conf.ui_theme 
         if self.conf.ui_lang : lang = self.conf.ui_lang
-        self.trans.load("lang_rls/arabic")
         
         QtWidgets.QApplication.instance().installTranslator(self.trans)
         
@@ -103,17 +102,13 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
         ###
         
         ##
-        # self.trans.load("lang_rls/french")
         
         # QtWidgets.QApplication.instance().installTranslator(self.trans)
         
         # tableWidget_files #use minimumSectionSize?
         # self.tableWidget_files.horizontalHeaderItem(0).setText("file")
         # self.tableWidget_files.horizontalHeaderItem(1).setText("size")
-        ver_status='<br><span style=" color:#5AAB61;"><b>'+self.tr("latest")+'</b></span>'
-        if float(CLI_latest)>float(CLI_VERSION) or int(GUI_latest)>int(GUI_VERSION):
-            ver_status='<br><span style=" color:#ff0000;"><b>'+self.tr("Please update")+'</b></span>'
-        self.label_verNb.setText(CG_VERSION+ver_status)
+        self.set_versionupdate_label()
         self.tableWidget_files.setHorizontalHeaderLabels([self.tr('filename'), self.tr('size')])
         
         self.tableWidget_files.setTextElideMode(Qt.ElideLeft)   
@@ -169,6 +164,12 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
         self.pbtn_donate.clicked.connect(lambda: webbrowser.open('http://animefn.com'))
 
         #self.retranslateUi()
+    def set_versionupdate_label (self):
+        ver_status='<br><span style=" color:#5AAB61;"><b>'+self.tr("latest")+'</b></span>'
+        if float(self.CLI_latest)>float(self.CLI_VERSION) or int(self.GUI_latest)>int(GUI_VERSION):
+            ver_status='<br><span style=" color:#ff0000;"><b>'+self.tr("Please update")+'</b></span>'
+        self.label_verNb.setText(self.CG_VERSION+ver_status)
+
     def swap_direction(self,rtl=True):
         dir=Qt.LeftToRight
         al = Qt.AlignLeft
@@ -210,6 +211,7 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
     def tl_ui(self):
         self.retranslateUi(self)
         self.tableWidget_files.setHorizontalHeaderLabels([self.tr('filename'), self.tr('size')])
+        self.set_versionupdate_label()
 
     def resizeEvent(self, event):
         print("resizing")
