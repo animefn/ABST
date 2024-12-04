@@ -33,7 +33,7 @@ def change_material_style(stylename=""):
         app.setStyleSheet ("")
         return
     app.setStyle("windowsvista")
-    QDir.addSearchPath(f'icon_{stylename}', f"themes\{stylename}\icons")
+    QDir.addSearchPath(f'icon_{stylename}', f"themes\\{stylename}\\icons")
     with open(f"themes/{stylename}/{stylename}.qss", 'r') as file:
             app.setStyleSheet ( file.read())
     # QDir.addSearchPath(f'icon_{stylename}', f"themes\{stylename}\icons") #put before loading qss and it fixes the not found issuse!
@@ -166,8 +166,12 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
         #self.retranslateUi()
     def set_versionupdate_label (self):
         ver_status='<br><span style=" color:#5AAB61;"><b>'+self.tr("latest")+'</b></span>'
-        if float(self.CLI_latest)>float(self.CLI_VERSION) or int(self.GUI_latest)>int(GUI_VERSION):
-            ver_status='<br><span style=" color:#ff0000;"><b>'+self.tr("Please update")+'</b></span>'
+        # print(">>>>> G" ,self.GUI_latest)
+        try:
+            if float(self.CLI_latest)>float(self.CLI_VERSION) or int(self.GUI_latest)>int(GUI_VERSION):
+                ver_status='<br><span style=" color:#ff0000;"><b>'+self.tr("Please update")+'</b></span>'
+        except:
+            ver_status='<br><span style=" color:#ff0000;"><b>'+self.tr("Error checking latest version")+'</b></span>'
         self.label_verNb.setText(self.CG_VERSION+ver_status)
 
     def swap_direction(self,rtl=True):
