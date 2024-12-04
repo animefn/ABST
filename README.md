@@ -138,3 +138,11 @@ Currently windows only. Our releases are 32 bit, so they run fine for people on 
 ### Any plans to support other OS? MAC? Linux?
 Maybe Linux, Our UI is cross-os compatible, and so is avisynth (in theory), but the main problem is vsfilter and libass is very limited, specially for non-latin languages. VSfilter Could be used with avs2yuv, wine etc, but it is a long shot...
 We have no plans to support MAC os for the time being,it might be considered after we add suport for linux (if ever). 
+
+
+### Changelog
+
+#### V1 First Official release
+- bug fix: No longer crash on startup if the program cannot reach update server (i.e now you can use the program without internet)
+- Updated code syntax for python 3.12
+- update mkvtoolnix
