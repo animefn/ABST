@@ -163,6 +163,27 @@ We have no plans to support macOS for the time being, it might be considered aft
 
 ### Changelog
 
+#### 1.04g7
+- bug fix: `-fonts_dir` is now used even when the input has no fonts attached to it. It used to be applied only to videos that already carried their own fonts, so for a video with external subtitles and a folder of fonts (exactly what the option is for) the folder was silently ignored.
+- if the fonts folder you give does not exist, ABST now tells you and carries on instead of ignoring it quietly.
+
+#### 1.03g7
+- bug fix: `-f` works again as the short form for the input files. Adding `-fonts_dir` had made a bare `-f` ambiguous between the two, so command lines that used to work started failing with "the parameter name 'f' is ambiguous". Use `-fo` or `-fonts_dir` for the fonts folder; `-f` always means the input files.
+- added the "touhou" tune to the GUI.
+
+#### 1.02g6
+- bug fix: the `tune` setting had no effect at all. It was accepted and shown in the GUI, but never reached the encoder, so every encode ran untuned. Note that output now differs from earlier versions, because the documented "animation" default finally applies.
+- the GUI now offers every x264 tune (stillimage, psnr, ssim, fastdecode, zerolatency) instead of only film/animation/grain, plus "none" to encode without a tune.
+- update checks now read the latest release straight from GitHub, so there is no separate update server to go stale.
+
+#### 1.01g5
+- bug fix: the GUI would not start at all on Windows 11, with no error and no window. It asked the CLI for version information before creating its window, and any failure there killed the program before anything appeared. Several causes, all fixed:
+    - the app now finds `abst_cli.exe`, `themes/` and `lang/` next to `ABST.exe` instead of relying on the folder you happened to launch it from, so shortcuts, a pinned taskbar entry, or running it from inside the archive all work.
+    - the update check no longer goes through Internet Explorer, which is retired on Windows 11 and made the check fail there.
+    - the update check now runs in the background with a time limit, so the window opens straight away instead of waiting on the network.
+    - if something unexpected does go wrong, you now get a message box and an `abst_error.log` file next to `ABST.exe` instead of silence.
+- bug fix: releases were being built with an empty `lang/` folder, so the Arabic and French translations were missing from the download.
+
 #### V1 First Official release
 - bug fix: No longer crash on startup if the program cannot reach update server (i.e now you can use the program without internet)
 - Updated code syntax for python 3.12
