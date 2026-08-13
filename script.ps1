@@ -49,7 +49,7 @@ $tools_path = $script_path + $OS_delim+"tools"
 
 
 
-[float]$my_version_counter = "1.01"
+[float]$my_version_counter = "1.02"
 
 
 
@@ -61,7 +61,7 @@ $release_page_url = "https://github.com/animefn/ABST/releases/latest"
 #   "github"  : the release tag itself. Nothing to maintain -- the release
 #               workflow already tags with the VER string (e.g. "1.00g4"),
 #               which encodes both the CLI and the GUI version.
-$update_source = "animefn"
+$update_source = "github"
 
 function get_latest_versions(){
     # Returns @{cli=..; gui=..; url=..}, or $null if the check could not run.
@@ -433,7 +433,13 @@ foreach ($input_file in $files){
     $maxFrames = & $tools_path/mediainfo.exe --Output="Video;%FrameCount%" $input_video
     $source_dimW,$source_dimH =  (& $tools_path/mediainfo.exe  --Inform="Video;%Width%x%Height%" $input_video).split("x")
     $ff_btconv=""
-    
+
+    # -tune was accepted as a parameter but never reached the encoder, so the
+    # setting did nothing. Build it as an array so an unset/none value splats
+    # to no argument at all rather than an empty string.
+    $ff_tune=@()
+    if ($tune -and $tune -ne "none") { $ff_tune = "-tune", $tune }
+
     #if set resize option
 
     #$audio_duration=$audios_dur.split(" ")
@@ -559,9 +565,9 @@ foreach ($input_file in $files){
         #-profile:v high -level 4  removed after preset
         if ($testdev.IsPresent){
             
-            echo "$tools_path/ffmpeg.exe $ffmpeg_param -i `"$avs_script_path`" -i `"$final_audiopath`" -map 0:0  -map 1:a:0  -c:v libx264 -pix_fmt yuv420p $ff_btconv -crf $crf -preset $preset -c:a copy  `"$outfile`""
+            echo "$tools_path/ffmpeg.exe $ffmpeg_param -i `"$avs_script_path`" -i `"$final_audiopath`" -map 0:0  -map 1:a:0  -c:v libx264 -pix_fmt yuv420p $ff_btconv -crf $crf -preset $preset $ff_tune -c:a copy  `"$outfile`""
         }
-        & $tools_path/ffmpeg.exe $ffmpeg_param  -progress pipe:1 -i "$avs_script_path" -i "$final_audiopath" -map 0:0  -map 1:a:0  -c:v libx264 -pix_fmt yuv420p $ff_btconv -crf $crf -preset $preset -c:a copy  "$outfile"   | Select-String 'frame=(\d+)' | ForEach-Object {
+        & $tools_path/ffmpeg.exe $ffmpeg_param  -progress pipe:1 -i "$avs_script_path" -i "$final_audiopath" -map 0:0  -map 1:a:0  -c:v libx264 -pix_fmt yuv420p $ff_btconv -crf $crf -preset $preset $ff_tune -c:a copy  "$outfile"   | Select-String 'frame=(\d+)' | ForEach-Object {
             $frame = [int] $_.Matches.Groups[1].Value
             
             #Write-Progress -Activity 'ffmpeg' -Status 'Converting' -PercentComplete ($frame * 100 / $maxFrames)
@@ -582,7 +588,7 @@ foreach ($input_file in $files){
         # else if final audio path is empty  do command without audio here
         # echo "disable audio feature not yet implemented EXP version"
          #
-        & $tools_path/ffmpeg.exe $ffmpeg_param -progress pipe:1 -i "$avs_script_path" -i "$input_video" -map 0:0  -map_metadata 1:s:0 -c:v libx264 -pix_fmt yuv420p $ff_btconv -crf $crf -preset $preset -an "$outfile"   | Select-String 'frame=(\d+)' | ForEach-Object {
+        & $tools_path/ffmpeg.exe $ffmpeg_param -progress pipe:1 -i "$avs_script_path" -i "$input_video" -map 0:0  -map_metadata 1:s:0 -c:v libx264 -pix_fmt yuv420p $ff_btconv -crf $crf -preset $preset $ff_tune -an "$outfile"   | Select-String 'frame=(\d+)' | ForEach-Object {
             $frame = [int] $_.Matches.Groups[1].Value
             
             #Write-Progress -Activity 'ffmpeg' -Status 'Converting' -PercentComplete ($frame * 100 / $maxFrames)

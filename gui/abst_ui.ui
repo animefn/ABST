@@ -307,6 +307,36 @@
              <string>grain</string>
             </property>
            </item>
+           <item>
+            <property name="text">
+             <string>stillimage</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>psnr</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>ssim</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>fastdecode</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>zerolatency</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>none</string>
+            </property>
+           </item>
           </widget>
          </item>
          <item row="1" column="0">

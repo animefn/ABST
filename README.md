@@ -53,6 +53,9 @@ full example:
 more on this https://slhck.info/video/2017/02/24/crf-guide.html
 - `preset` values (official ones): default ultrafast
 - `tune` (official x264 ones) animation by default
+    - one of "film", "animation", "grain", "stillimage", "psnr", "ssim", "fastdecode", "zerolatency"
+    - "none" (or an empty value) encodes without any tune
+    - "psnr" and "ssim" optimise for those metrics and generally look worse to the eye. They are meant for benchmarking, not for distribution.
 - `subpriority` : 
     - "internal_first" :(i.e prefer internal, if no internal, it will look for external local)
     - "external_first" :(i.e prefer local external, if no external, it will look for internal)
