@@ -3,14 +3,16 @@ from PyQt5 import QtWidgets
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import QTableWidgetItem,QHeaderView,QFileDialog #,QWidget
 
-from PyQt5.QtCore import QDir,QFileInfo,Qt,QMimeDatabase,QProcess, QSize,QTranslator,QCoreApplication
+from PyQt5.QtCore import QDir,QFileInfo,Qt,QMimeDatabase,QProcess, QSize,QTranslator,QCoreApplication,QThread,pyqtSignal
 
 
 from abst_conf import ABSTConfig
 import abst_ui
 
+import os
 import sys
 import subprocess
+import traceback
 import webbrowser
 
 # Future feauture: maybe someday dnd on widget only instead of window specially if we need DND for other things
@@ -21,10 +23,51 @@ import webbrowser
 
 
 
-proc=r".\abst_cli.exe"
+def app_dir():
+    """Folder that holds ABST.exe (or abst_gui.py when running from source).
+
+    Everything the app loads at runtime -- abst_cli.exe, themes/, lang/,
+    abst_settings.ini -- sits next to it. We must NOT rely on the working
+    directory: it is whatever the caller happened to be in (a shortcut, a
+    pinned taskbar entry, running the exe straight out of the 7z viewer,
+    drag-and-dropping files onto it...), and then every relative path breaks.
+    For a --onefile build sys.executable is ABST.exe itself, not _MEIPASS,
+    which is what we want since these files ship unbundled beside it.
+    """
+    if getattr(sys, 'frozen', False):
+        return os.path.dirname(os.path.abspath(sys.executable))
+    return os.path.dirname(os.path.abspath(__file__))
+
+APP_DIR = app_dir()
+proc = os.path.join(APP_DIR, "abst_cli.exe")
+# Kept relative on purpose for the "start ... CMD /K" command line below:
+# once we chdir into APP_DIR this resolves, and it dodges the quoting rules
+# that a path containing spaces would hit inside cmd /K.
+PROC_REL = r".\abst_cli.exe"
 # proc=r"D:\apps\fansub-tools\abst-dev\script.exe"
 
+# Hide the console window of the CLI probes below; the GUI has no console of
+# its own, so without this each check_output() flashes a black box.
+CREATE_NO_WINDOW = 0x08000000 if sys.platform == "win32" else 0
+
 GUI_VERSION=4
+
+
+def run_cli(*cli_args, timeout=10):
+    """Call abst_cli.exe by absolute path and return its stdout, stripped.
+
+    The timeout matters: -check_update does a web request, and when the update
+    server is unreachable it can sit there for minutes before giving up. That
+    ran before the window was created, so the app looked like it never started.
+    check_output kills the child when the timeout fires, so we do not leak a
+    stuck abst_cli.exe per launch either.
+    """
+    return subprocess.check_output(
+        [proc, *cli_args],
+        stderr=subprocess.DEVNULL,
+        creationflags=CREATE_NO_WINDOW,
+        timeout=timeout,
+    ).decode('utf-8', errors='replace').strip()
 
 
 
@@ -60,15 +103,45 @@ def sizeof_fmt(num, suffix="B"):
 
 
 
+class UpdateCheck(QThread):
+    """Ask the CLI for the latest published version, off the UI thread.
+
+    This is a web request. Doing it inline meant the window could not appear
+    until the update server answered -- which, offline or behind a firewall,
+    is never. The window now opens immediately and the label fills in later.
+    """
+    checked = pyqtSignal(object, object)
+
+    def run(self):
+        cli_latest = gui_latest = None
+        try:
+            out = run_cli('-check_update', timeout=20)
+            cli_latest, gui_latest = out.split("[")[1].split("]")[0].split("g")
+        except Exception:
+            traceback.print_exc()
+        self.checked.emit(cli_latest, gui_latest)
+
+
 class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
     def __init__(self, parent=None):
         
         # change_material_style("dark_teal")
         # change_material_style()
-        self.CLI_VERSION=subprocess.check_output([proc, '-v'],shell=True).decode('utf-8').strip()
+        # None of this is allowed to stop the window from opening: the version
+        # banner is cosmetic, but it used to run before super().__init__() and
+        # any failure killed the app before it drew a single pixel.
+        try:
+            self.CLI_VERSION=run_cli('-v', timeout=15)
+        except Exception:
+            traceback.print_exc()
+            self.CLI_VERSION="?"
         self.CG_VERSION=f"{self.CLI_VERSION}g{GUI_VERSION}"
-        self.CLI_latest,self.GUI_latest=subprocess.check_output([proc, '-check_update'],shell=True).decode('utf-8').strip().split("[")[1].split("]")[0].split("g")
-        
+
+        # Filled in by the UpdateCheck thread once it answers (see below).
+        self.CLI_latest,self.GUI_latest=None,None
+        self.update_checked=False
+
+
         super(AbstGUi, self).__init__(parent)
         ###
         self.conf= ABSTConfig()
@@ -163,8 +236,28 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
         self.pbtn_update.clicked.connect(lambda: webbrowser.open('https://github.com/animefn/ABST/releases/latest'))
         self.pbtn_donate.clicked.connect(lambda: webbrowser.open('http://animefn.com'))
 
+        # Kick off the update check now that the UI is built and about to show.
+        self.update_thread=UpdateCheck(self)
+        self.update_thread.checked.connect(self.on_update_checked)
+        self.update_thread.start()
+
         #self.retranslateUi()
+    def on_update_checked(self,cli_latest,gui_latest):
+        self.CLI_latest,self.GUI_latest=cli_latest,gui_latest
+        self.update_checked=True
+        self.set_versionupdate_label()
+
+    def closeEvent(self,event):
+        # Don't let Qt tear down a still-running QThread on exit.
+        if self.update_thread.isRunning():
+            self.update_thread.wait(3000)
+        QtWidgets.QMainWindow.closeEvent(self,event)
+
     def set_versionupdate_label (self):
+        if not self.update_checked:
+            ver_status='<br><span style=" color:#808080;">'+self.tr("checking for updates...")+'</span>'
+            self.label_verNb.setText(self.CG_VERSION+ver_status)
+            return
         ver_status='<br><span style=" color:#5AAB61;"><b>'+self.tr("latest")+'</b></span>'
         # print(">>>>> G" ,self.GUI_latest)
         try:
@@ -369,7 +462,7 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
         
         
         # str_cmd=f"start /wait \"ABST Encoder\" \"{proc}\"  {args} "
-        str_cmd=f"start \"ABST Encoder\" \"CMD\" /K {proc}  {args} ^& pause"
+        str_cmd=f"start \"ABST Encoder\" \"CMD\" /K {PROC_REL}  {args} ^& pause"
         
 
         print(str_cmd)
@@ -381,7 +474,33 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
         #             stdin=None, stdout=subprocess.PIPE, stderr=None, close_fds=True)
         
 
+def report_crash(exc_type, exc_value, exc_tb):
+    """Never die silently again.
+
+    A --windowed build has nowhere to print a traceback to, so an exception on
+    the startup path just made the process vanish with no feedback at all.
+    Write it next to the exe and, if Qt is up, put it on screen.
+    """
+    text = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
+    sys.stderr.write(text)
+    try:
+        with open(os.path.join(APP_DIR, "abst_error.log"), "w", encoding="utf-8") as f:
+            f.write(text)
+    except OSError:
+        pass
+    try:
+        QtWidgets.QMessageBox.critical(
+            None, "ABST failed to start",
+            "ABST hit an unexpected error and could not start.\n\n"
+            f"{exc_type.__name__}: {exc_value}\n\n"
+            "Details were saved to abst_error.log next to ABST.exe.")
+    except Exception:
+        pass
+
+
 if __name__ == '__main__':
+    sys.excepthook = report_crash
+
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("-v","--version", help="show gui version", action="store_true")
@@ -389,8 +508,17 @@ if __name__ == '__main__':
     if args.version:
         print("Gui Version:", GUI_VERSION)
         sys.exit()
+
+    # Anchor the process to the app folder before anything loads a resource.
+    # themes/*.qss, lang/*.qm, abst_settings.ini and abst_cli.exe are all
+    # referenced by relative path, so they only resolve if we are standing here.
+    try:
+        os.chdir(APP_DIR)
+    except OSError:
+        pass
+
     app = QtWidgets.QApplication(sys.argv)
-    
+
     
     # Create class object
     window = AbstGUi()

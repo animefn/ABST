@@ -53,23 +53,70 @@ $tools_path = $script_path + $OS_delim+"tools"
 
 
 
-function check_for_update(){
-    # get json from ANIMEFN in variable
+$release_page_url = "https://github.com/animefn/ABST/releases/latest"
+
+# Where the "latest published version" is read from.
+#   "animefn" : the abst.json we host ourselves (must be edited by hand on
+#               every release, or it silently goes stale)
+#   "github"  : the release tag itself. Nothing to maintain -- the release
+#               workflow already tags with the VER string (e.g. "1.00g4"),
+#               which encodes both the CLI and the GUI version.
+$update_source = "animefn"
+
+function get_latest_versions(){
+    # Returns @{cli=..; gui=..; url=..}, or $null if the check could not run.
+    #
+    # -UseBasicParsing is the important one: without it Invoke-WebRequest hands
+    # the response to the Internet Explorer engine for DOM parsing. IE is
+    # retired on Windows 11, so the call dies with "Object reference not set to
+    # an instance of an object" -- which is why the update check worked for us
+    # and failed for everyone on Win11.
+    # -TimeoutSec keeps an unreachable host from blocking the caller forever.
+    # -ErrorAction Stop is required because $ErrorActionPreference is
+    # SilentlyContinue script-wide, which would otherwise skip the catch.
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-    $animefn_json = Invoke-WebRequest 'https://animefn.com/abst.json' | ConvertFrom-Json
-    [float]$latest_version = $animefn_json."latest_version" #get latest version number from some json web format
-    $latest_gui = $animefn_json."latest_gui"
-    $update_url = $animefn_json."release_url"
-    
-    if ($latest_version -gt $my_version_counter) {
-    # $update_url
-    Write-Output ("A newer version is available. You need to get the latest version [$latest_version"+"g"+"$latest_gui] from our github repo: $update_url")
-    # get json.update msg
-    # get json.update url
-    } elseif ($New_ver -eq $Old_ver) {
+    try {
+        if ($update_source -eq "github") {
+            $gh = Invoke-RestMethod "https://api.github.com/repos/animefn/ABST/releases/latest" `
+                    -UseBasicParsing -TimeoutSec 10 -ErrorAction Stop `
+                    -Headers @{ "User-Agent" = "ABST-update-check" }
+            $parts = ([string]$gh.tag_name).TrimStart("v","V") -split "g"   # "1.00g4" -> 1.00 , 4
+            if ($parts.Count -lt 2) { return $null }
+            return @{ cli = $parts[0]; gui = $parts[1]; url = $release_page_url }
+        }
+
+        $json = Invoke-RestMethod "https://animefn.com/abst.json" `
+                    -UseBasicParsing -TimeoutSec 10 -ErrorAction Stop
+        $url = $json."release_url"
+        if (-not $url) { $url = $release_page_url }
+        return @{ cli = $json."latest_version"; gui = $json."latest_gui"; url = $url }
+    } catch {
+        return $null
+    }
+}
+
+function check_for_update(){
+    $latest = get_latest_versions
+
+    # Always emit the [<cli>g<gui>] token, even on failure: the GUI parses it
+    # positionally, and an empty string used to make it throw at startup.
+    if (-not $latest) {
+        Write-Output ("Could not reach the update server to check for a newer version. You are running $my_version_counter of ABST CLI: Lastest known is [?g?]")
+        return
+    }
+
+    # Keep the version as text for display ("1.00" not "1"), compare as a number.
+    $latest_version = [string]$latest.cli
+    $latest_gui = [string]$latest.gui
+    $update_url = $latest.url
+    [float]$latest_version_num = 0
+    [void][float]::TryParse($latest_version, [ref]$latest_version_num)
+
+    if ($latest_version_num -gt $my_version_counter) {
+        Write-Output ("A newer version is available. You need to get the latest version [$latest_version"+"g"+"$latest_gui] from our github repo: $update_url")
+    } else {
         Write-Output ("You have the latest version $my_version_counter of ABST CLI: Lastest known is [$latest_version"+"g"+"$latest_gui]")
-    } 
-    
+    }
 }
 
 function info_group(){
