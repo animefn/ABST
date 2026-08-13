@@ -50,7 +50,7 @@ PROC_REL = r".\abst_cli.exe"
 # its own, so without this each check_output() flashes a black box.
 CREATE_NO_WINDOW = 0x08000000 if sys.platform == "win32" else 0
 
-GUI_VERSION=6
+GUI_VERSION=7
 
 
 def run_cli(*cli_args, timeout=10):
