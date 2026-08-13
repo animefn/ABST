@@ -75,8 +75,8 @@ more on this https://slhck.info/video/2017/02/24/crf-guide.html
 - `fonts_dir`
     - "/path/to/folder" a folder of extra fonts to use for this encode, on top of the fonts already attached to the input.
     - The fonts are installed temporarily for the duration of the encode (no admin privileges needed) and removed again once it is done, exactly like the attached ones.
-    - Useful when your subtitles are an external file and the fonts they need are not attached to the video.
-    - Known limitation: extra fonts are currently only loaded when the input already has at least one attached font. If the input has no attachments at all, this folder is skipped.
+    - Useful when your subtitles are an external file and the fonts they need are not attached to the video. This works whether or not the input carries attached fonts of its own.
+    - If the folder you give does not exist, ABST says so and carries on without it.
     - May be written `-fo` or `-fon`. `-f` on its own always means the input files, see `files_str` below.
 - `files_str` (may be written `-f` or `-fi`)
     - ` "path/to/file1::path/to/file2..."` : paths to files separated by `::`, make sure to put the paths between `" "` to escape special characters

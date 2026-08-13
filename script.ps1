@@ -53,7 +53,7 @@ $tools_path = $script_path + $OS_delim+"tools"
 
 
 
-[float]$my_version_counter = "1.03"
+[float]$my_version_counter = "1.04"
 
 
 
@@ -477,18 +477,28 @@ foreach ($input_file in $files){
     #write-output $final_audiopath
     #write-output $final_subpath
     
+    # A -fonts_dir has to be honoured even when the input carries no
+    # attachments: a video with external subtitles and a folder of fonts is
+    # exactly the case the option exists for. It used to be loaded inside the
+    # "$nb_fonts -gt 0" check below, so for those files it was silently ignored.
+    $extra_fonts = ($fonts_dir) -and (Test-Path -LiteralPath $fonts_dir -PathType Container)
+    if (($fonts_dir) -and (-not $extra_fonts)){
+        echo "  the fonts folder `"$fonts_dir`" does not exist, ignoring it"
+    }
+
     #if ($input_ext -eq ".mkv"){   #maybe better to do on nb fonts
     if ($nb_fonts -gt 0){
         #if ($input_ext -eq ".mkv"){
         echo "  extracting fonts..."
         extract_fonts $input_video $tmp_dir $nb_fonts
         #}
-        
-        
+    }
+
+    if (($nb_fonts -gt 0) -or $extra_fonts){
         echo "  loading fonts..."
         if (-not ($testdev.IsPresent)){
-            loadfonts_fromdir $tmp_dir
-            loadfonts_fromdir $fonts_dir
+            if ($nb_fonts -gt 0){ loadfonts_fromdir $tmp_dir }
+            if ($extra_fonts)   { loadfonts_fromdir $fonts_dir }
         }else{
             echo "skipped fonts installation bcz dev mode"
         }
@@ -619,11 +629,11 @@ foreach ($input_file in $files){
     Write-Host ""
     #unload fonts and clear temp directory
     # unload fonts
-    if ($nb_fonts -gt 0){
+    if (($nb_fonts -gt 0) -or $extra_fonts){
         echo "removing fonts..."
         if (-not ($testdev.IsPresent)){
-            unloadfonts_fromdir $tmp_dir
-            unloadfonts_fromdir $fonts_dir
+            if ($nb_fonts -gt 0){ unloadfonts_fromdir $tmp_dir }
+            if ($extra_fonts)   { unloadfonts_fromdir $fonts_dir }
         }else{
                 echo "skipped fonts uninstall bcz dev mode"
             }
