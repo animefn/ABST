@@ -53,7 +53,7 @@ full example:
 more on this https://slhck.info/video/2017/02/24/crf-guide.html
 - `preset` values (official ones): default ultrafast
 - `tune` (official x264 ones) animation by default
-    - one of "film", "animation", "grain", "stillimage", "psnr", "ssim", "fastdecode", "zerolatency"
+    - one of "film", "animation", "grain", "stillimage", "psnr", "ssim", "fastdecode", "zerolatency", "touhou"
     - "none" (or an empty value) encodes without any tune
     - "psnr" and "ssim" optimise for those metrics and generally look worse to the eye. They are meant for benchmarking, not for distribution.
 - `subpriority` : 
@@ -72,8 +72,9 @@ more on this https://slhck.info/video/2017/02/24/crf-guide.html
 - `output_destination` 
     - "" empty => default: do not provide a value, and the same folder of the input will be used
     - /path/to/folder a directory to save output
-- `files`
+- `files_str` (may be written `-f` or `-fi`)
     - ` "path/to/file1::path/to/file2..."` : paths to files separated with spaces, make sure to put the pathes between `" "` to escape special characters
+    - note: use `-fo` or the full `-fonts_dir` for the fonts folder. `-f` always means the input files.
 - `prefix`  
     - "string" add some prefix before name filename
 - `suffix`

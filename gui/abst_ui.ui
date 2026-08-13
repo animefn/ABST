@@ -334,6 +334,11 @@
            </item>
            <item>
             <property name="text">
+             <string>touhou</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
              <string>none</string>
             </property>
            </item>

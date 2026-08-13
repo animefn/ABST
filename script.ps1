@@ -15,7 +15,11 @@ Param(
     [parameter(ParameterSetName="Default", mandatory=$false)][string]$suffix="",
     [parameter(ParameterSetName="Default", mandatory=$false)][switch]$testdev,
     [parameter(ParameterSetName="Default", mandatory=$false)][switch]$debug_verbose,
-    [Parameter(ParameterSetName="Default", mandatory=$true)][string]$files_str,
+    # -f is the shorthand the docs have always used for the input files. Adding
+    # -fonts_dir made the bare "-f" prefix ambiguous between the two, breaking
+    # every existing command line. An explicit alias wins over prefix matching,
+    # so -f binds here again, and -fo still reaches -fonts_dir.
+    [Parameter(ParameterSetName="Default", mandatory=$true)][Alias("f","fi")][string]$files_str,
 
     [parameter(ParameterSetName="info", mandatory=$false)][switch]$version,
     [parameter(ParameterSetName="info", mandatory=$false)][switch]$check_update
