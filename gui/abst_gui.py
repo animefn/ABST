@@ -50,7 +50,7 @@ PROC_REL = r".\abst_cli.exe"
 # its own, so without this each check_output() flashes a black box.
 CREATE_NO_WINDOW = 0x08000000 if sys.platform == "win32" else 0
 
-GUI_VERSION=4
+GUI_VERSION=5
 
 
 def run_cli(*cli_args, timeout=10):
@@ -115,7 +115,7 @@ class UpdateCheck(QThread):
     def run(self):
         cli_latest = gui_latest = None
         try:
-            out = run_cli('-check_update', timeout=20)
+            out = run_cli('-check_update', timeout=8)
             cli_latest, gui_latest = out.split("[")[1].split("]")[0].split("g")
         except Exception:
             traceback.print_exc()
@@ -248,9 +248,11 @@ class AbstGUi (QtWidgets.QMainWindow,abst_ui.Ui_MainWindow):
         self.set_versionupdate_label()
 
     def closeEvent(self,event):
-        # Don't let Qt tear down a still-running QThread on exit.
+        # Don't let Qt tear down a still-running QThread on exit. The worker is
+        # bounded by the subprocess timeout above, so this waits at most that
+        # long, and only if the window is closed mid-check (normally instant).
         if self.update_thread.isRunning():
-            self.update_thread.wait(3000)
+            self.update_thread.wait(10000)
         QtWidgets.QMainWindow.closeEvent(self,event)
 
     def set_versionupdate_label (self):

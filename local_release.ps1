@@ -42,9 +42,34 @@ cd -LiteralPath $original_path
 cp -r -Force gui\dist\* $test_release_path #move compiled gui to release
 
 mkdir -Force  $test_release_path\lang
-lrelease .\gui\lang_src\arabic.ts -qm .\$test_release_path\lang\arabic.qm   # generate distributable lang files
-lrelease .\gui\lang_src\french.ts -qm .\$test_release_path\lang\french.qm   # generate distributable lang files
+
+# Locate lrelease.exe ourselves instead of trusting an alias pointing at a
+# hardcoded Python path. The CI alias pinned Python 3.9.13, but setup-python
+# '3.9' installs whatever the newest 3.9.x is, so the path stopped existing.
+# Set-Alias does not validate its target and nothing here checked for errors,
+# so lrelease quietly did nothing and releases shipped with an empty lang/
+# folder: no Arabic, no French.
+$lrelease_exe = $null
+$lrelease_cmd = Get-Command lrelease -ErrorAction SilentlyContinue
+if ($lrelease_cmd -and (Test-Path -LiteralPath $lrelease_cmd.Definition)) {
+    $lrelease_exe = $lrelease_cmd.Definition
+} else {
+    $python_cmd = Get-Command python -ErrorAction SilentlyContinue
+    if ($python_cmd) {
+        $lrelease_exe = Get-ChildItem -Path (Split-Path $python_cmd.Source) -Filter lrelease.exe -Recurse -ErrorAction SilentlyContinue |
+                            Select-Object -First 1 -ExpandProperty FullName
+    }
+}
+if (-not $lrelease_exe) { throw "lrelease.exe not found - the release would ship without translations. Is pyqt5-tools installed?" }
+echo "using lrelease: $lrelease_exe"
+
 #could repleace these 2 lines with a loop for each file of lang_src later.
+foreach ($lang_name in @("arabic","french")) {
+    & $lrelease_exe ".\gui\lang_src\$lang_name.ts" -qm ".\$test_release_path\lang\$lang_name.qm"   # generate distributable lang files
+    if (-not (Test-Path -LiteralPath ".\$test_release_path\lang\$lang_name.qm")) {
+        throw "failed to build lang\$lang_name.qm - refusing to ship a release without translations"
+    }
+}
 
 # Copy tools folder to lolal release too
 cp -r -Force tools $test_release_path
