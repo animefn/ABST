@@ -177,11 +177,8 @@ We have no plans to support macOS for the time being, it might be considered aft
 - update checks now read the latest release straight from GitHub, so there is no separate update server to go stale.
 
 #### 1.01g5
-- bug fix: the GUI would not start at all on Windows 11, with no error and no window. It asked the CLI for version information before creating its window, and any failure there killed the program before anything appeared. Several causes, all fixed:
-    - the app now finds `abst_cli.exe`, `themes/` and `lang/` next to `ABST.exe` instead of relying on the folder you happened to launch it from, so shortcuts, a pinned taskbar entry, or running it from inside the archive all work.
-    - the update check no longer goes through Internet Explorer, which is retired on Windows 11 and made the check fail there.
-    - the update check now runs in the background with a time limit, so the window opens straight away instead of waiting on the network.
-    - if something unexpected does go wrong, you now get a message box and an `abst_error.log` file next to `ABST.exe` instead of silence.
+- bug fix: the GUI would not start at all on Windows 11, with no error and no window. It asked the CLI for version information before creating its window, and any failure there killed the program before anything appeared. Several causes fixed.
+  
 - bug fix: releases were being built with an empty `lang/` folder, so the Arabic and French translations were missing from the download.
 
 #### V1 First Official release
